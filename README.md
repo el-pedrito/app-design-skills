@@ -21,7 +21,7 @@ Open Design and Impeccable are complementary. Impeccable does not replace art di
 ## Prerequisites
 
 - A coding agent that supports Agent Skills, such as Claude Code, Kiro CLI, Codex, Cursor or OpenCode.
-- Node.js 20 or newer.
+- Node.js 22.20 or newer.
 - [Open Design](https://github.com/nexu-io/open-design): install its daemon and wire the MCP into the agent. Missing Open Design blocks generation unless the user explicitly requests the neutral fallback.
 - [Impeccable](https://github.com/pbakaus/impeccable): install it from the target product project:
 
@@ -100,9 +100,41 @@ examples/
 
 ## Dogfooded Brewlog example
 
-- [`examples/brewlog-brand.html`](examples/brewlog-brand.html): brand board for a fictional coffee tasting journal. It contains exact tokens and contrast commitments, iconography, four mascot states, behavior rules, reproduction tests, a lockup, app icon routes, signature motifs and a project-specific never-list.
-- [`examples/brewlog-DESIGN.md`](examples/brewlog-DESIGN.md): the durable agent-facing contract extracted from the board, under 60 lines.
-- [`examples/brewlog-screens.html`](examples/brewlog-screens.html): six iOS screens consuming the board exactly: Journal, first-launch Journal, Log a brew, Brew timer, Stats and Settings. Calm, Focused and Resting states appear only where licensed. Pleased is intentionally absent because the set has no save-confirmation screen.
-- [`examples/brewlog-screens-fallback-neutral.html`](examples/brewlog-screens-fallback-neutral.html): the explicit no-Open-Design fallback. It remains structurally valid but intentionally generic.
+These previews are rendered directly from the committed HTML examples, so the README and the inspectable artifacts stay aligned.
+
+### Brand direction
+
+<p align="center">
+  <a href="examples/brewlog-brand.html">
+    <img src="assets/readme/brewlog-brand.webp" width="960" alt="Brewlog brand board showing the Calm, Pleased, Focused and Resting mascot states plus four app icon concepts.">
+  </a>
+</p>
+
+[`examples/brewlog-brand.html`](examples/brewlog-brand.html) contains the complete board: exact tokens and contrast commitments, iconography, mascot behavior, reproduction tests, the logo lockup, signature motifs and the project-specific never-list. [`examples/brewlog-DESIGN.md`](examples/brewlog-DESIGN.md) is the matching durable agent-facing contract, kept under 60 lines.
+
+### Branded iOS set
+
+<p align="center">
+  <a href="examples/brewlog-screens.html">
+    <img src="assets/readme/brewlog-screens.webp" width="960" alt="Six branded Brewlog iOS screens: Journal, first-launch Journal, Log a brew, Brew timer, Stats and Settings.">
+  </a>
+</p>
+
+[`examples/brewlog-screens.html`](examples/brewlog-screens.html) consumes the board exactly across six screens: Journal, first-launch Journal, Log a brew, Brew timer, Stats and Settings. Calm, Focused and Resting appear only where licensed. Pleased is intentionally absent because the set has no save-confirmation screen.
+
+### Neutral fallback
+
+<details>
+<summary>Compare the explicit five-screen fallback</summary>
+
+<p align="center">
+  <a href="examples/brewlog-screens-fallback-neutral.html">
+    <img src="assets/readme/brewlog-screens-fallback-neutral.webp" width="960" alt="Five neutral Brewlog iOS fallback screens arranged in two rows.">
+  </a>
+</p>
+
+[`examples/brewlog-screens-fallback-neutral.html`](examples/brewlog-screens-fallback-neutral.html) is the no-Open-Design path. It remains structurally valid but intentionally generic, making the value of the generated direction visible rather than merely described.
+
+</details>
 
 The Brewlog screen set passed the Impeccable review layer and the deterministic browser gate after fixing two blocking findings: undersized segmented controls and a form CTA overlap.
