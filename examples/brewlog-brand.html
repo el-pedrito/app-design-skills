@@ -1,0 +1,1154 @@
+<!DOCTYPE html>
+<html lang="en">
+<!-- impeccable-disable numbered-section-markers: ordered brand-board sections are stable review and handoff indices. -->
+<!-- impeccable-disable em-dash-overuse: displayed CSS custom-property names use double hyphens; prose contains no em dashes. -->
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Brewlog: Brand Board</title>
+<style>
+/* ============================================================
+   BREWLOG: GLOBAL TOKENS
+   Single source of truth. Every color on this page is consumed
+   from these custom properties (directly or via color-mix).
+   ============================================================ */
+:root{
+  /* ---- colour ---- */
+  --primary:      #6B3C2A;  /* Roast         : structure, headers, primary control */
+  --primary-600:  #4E2A1D;  /* Deep Roast    : hover / pressed / body-safe brand text */
+  --accent:       #D18F2C;  /* Honey         : ratings, extraction marker, timer active */
+  --bg:           #F6F3EE;  /* Kraft Paper   : app canvas */
+  --fg:           #1E1815;  /* Espresso Ink  : all primary text */
+  --muted:        #6B6058;  /* Cupping Note  : secondary text, units, timestamps */
+  --surface:      #FFFFFF;  /* Filter White  : cards, sheets, brew records */
+  --border:       #E2DACE;  /* Chaff         : hairlines, dividers, card edges */
+  --danger:       #9E2B1E;  /* Over-extracted: destructive, out-of-range values */
+  --success:      #3E6B3A;  /* Coffee Leaf   : in-range, saved, dialled in */
+
+  /* ---- radius ---- */
+  --r-sm: 4px;
+  --r-md: 10px;
+  --r-lg: 20px;
+
+  /* ---- spacing (8px baseline, 4px half-step) ---- */
+  --s1: 4px;
+  --s2: 8px;
+  --s3: 16px;
+  --s4: 24px;
+  --s5: 40px;
+
+  /* ---- type stacks (system only: renders offline) ---- */
+  --font-display: "Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
+  --font-body: -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,"Helvetica Neue",sans-serif;
+  --font-mono: ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,monospace;
+
+  /* ---- derived (token-only) ---- */
+  --tint-primary: color-mix(in srgb, var(--primary) 7%, var(--surface));
+  --tint-accent:  color-mix(in srgb, var(--accent) 16%, var(--surface));
+  --track:        color-mix(in srgb, var(--fg) 9%, var(--surface));
+  --shadow-1:     0 1px 2px color-mix(in srgb, var(--fg) 9%, transparent);
+  --shadow-2:     0 2px 10px color-mix(in srgb, var(--fg) 7%, transparent);
+}
+
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;max-width:100%}
+body{
+  background:var(--bg);
+  color:var(--fg);
+  font:400 17px/1.6 var(--font-body);
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+.board{max-width:1180px;margin:0 auto;padding:var(--s5) var(--s4) calc(var(--s5) * 2)}
+
+/* ---------- shared type roles ---------- */
+.mono{font-family:var(--font-mono);font-variant-numeric:tabular-nums;letter-spacing:0}
+.label{
+  font-family:var(--font-mono);font-size:14px;line-height:1.2;
+  text-transform:uppercase;letter-spacing:.14em;color:var(--primary-600);
+}
+.note{font-size:15px;line-height:1.55;color:var(--muted)}
+h1,h2,h3{font-family:var(--font-display);font-weight:600;margin:0}
+p{margin:0}
+a{color:var(--primary-600);text-decoration:none;border-bottom:1px solid var(--border)}
+a:hover{background:var(--tint-primary);border-bottom-color:var(--primary-600)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--primary-600);outline-offset:3px;border-radius:var(--r-sm)}
+
+/* ---------- masthead ---------- */
+.masthead{display:flex;flex-wrap:wrap;gap:var(--s4);align-items:flex-end;justify-content:space-between;padding-bottom:var(--s4)}
+.wordmark{display:flex;align-items:center;gap:var(--s3)}
+.wordmark h1{font-size:44px;line-height:1;letter-spacing:-.015em}
+.wordmark .dot{width:10px;height:10px;border-radius:50%;background:var(--accent);flex:none;margin-bottom:6px}
+.jump{display:flex;flex-wrap:wrap;gap:var(--s1) var(--s3)}
+.jump a{font-family:var(--font-mono);font-size:14px;letter-spacing:.06em;text-transform:uppercase;border-bottom:none;padding:var(--s1) var(--s2);border-radius:var(--r-sm)}
+
+/* ---------- cupping rule (signature divider) ---------- */
+.rule{height:11px;margin:var(--s5) 0 var(--s4);border-top:1px solid var(--border);position:relative}
+.rule::after{
+  content:"";position:absolute;left:0;top:0;width:100%;height:6px;
+  background-image:repeating-linear-gradient(90deg,var(--border) 0 1px,transparent 1px 48px);
+}
+
+section{margin-top:var(--s5)}
+.sec-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:var(--s3);margin-bottom:var(--s2)}
+.sec-head h2{font-size:31px;line-height:1.15;letter-spacing:-.01em}
+.sec-head .num{font-family:var(--font-mono);font-size:14px;letter-spacing:.16em;color:var(--primary);padding-top:4px}
+.sec-sub{max-width:62ch;margin-bottom:var(--s4)}
+
+/* ---------- generic card ---------- */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);box-shadow:var(--shadow-1)}
+
+/* ---------- 1 · identity ---------- */
+.identity{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:var(--s4);align-items:start}
+.essence{padding:var(--s4)}
+.essence .lead{font-family:var(--font-display);font-size:26px;line-height:1.3;letter-spacing:-.005em}
+.essence .lead em{font-style:normal;color:var(--primary-600)}
+.mood{display:flex;flex-wrap:wrap;gap:var(--s2)}
+.mood span{
+  font-family:var(--font-mono);font-size:15px;letter-spacing:.1em;text-transform:uppercase;
+  padding:10px var(--s3);border:1px solid var(--border);border-radius:999px;
+  background:var(--surface);color:var(--fg);
+}
+.mood span:first-child{border-color:var(--primary);color:var(--primary-600)}
+.spec-strip{
+  display:flex;flex-wrap:wrap;gap:var(--s2) var(--s3);padding:var(--s3) var(--s4);
+  background:var(--tint-primary);border:1px solid var(--border);border-radius:var(--r-md);
+  font-family:var(--font-mono);font-size:15px;font-variant-numeric:tabular-nums;color:var(--primary-600);
+}
+
+/* ---------- 2 · palette ---------- */
+.swatches{display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));gap:var(--s3)}
+.sw{border:1px solid var(--border);border-radius:var(--r-md);overflow:hidden;background:var(--surface)}
+.sw .chip{height:96px;border-bottom:1px solid var(--border);display:flex;align-items:flex-end;padding:var(--s2)}
+.sw .chip .ratio{font-family:var(--font-mono);font-size:13px;letter-spacing:.04em}
+.sw .meta{padding:var(--s3)}
+.sw .name{font-family:var(--font-display);font-size:19px;line-height:1.2}
+.sw .tok{font-family:var(--font-mono);font-size:14px;color:var(--primary-600);margin-top:var(--s1);display:block}
+.sw .hex{font-family:var(--font-mono);font-size:14px;color:var(--muted)}
+.sw .role{font-size:15px;line-height:1.45;color:var(--muted);margin-top:var(--s2)}
+.sw--support .chip{height:56px}
+
+.contrast{display:grid;grid-template-columns:repeat(auto-fit,minmax(268px,1fr));gap:var(--s3);margin-top:var(--s3)}
+.cx{padding:var(--s3) var(--s4);border:1px solid var(--border);border-radius:var(--r-md)}
+.cx .pair{font-family:var(--font-mono);font-size:15px;letter-spacing:.02em}
+.cx .val{font-family:var(--font-display);font-size:34px;line-height:1.1;margin-top:var(--s1)}
+.cx .aaa{font-family:var(--font-mono);font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--success)}
+.cx--fg{background:var(--bg)}
+.cx--pr{background:var(--surface)}
+.cx--pr .val{color:var(--primary-600)}
+
+.ratio-list{margin-top:var(--s3);display:flex;flex-wrap:wrap;gap:var(--s2) var(--s4)}
+.ratio-list li{list-style:none;font-family:var(--font-mono);font-size:14px;color:var(--muted)}
+.ratio-list b{color:var(--fg);font-weight:400}
+ul.plain{margin:0;padding:0}
+
+/* ---------- 3 · typography ---------- */
+.stacks{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:var(--s3);margin-bottom:var(--s4)}
+.stack{padding:var(--s3) var(--s4)}
+.stack .fam{font-size:21px;margin-top:var(--s1)}
+.stack code{display:block;margin-top:var(--s2);font-family:var(--font-mono);font-size:14px;line-height:1.55;color:var(--muted);word-break:break-word}
+.stack .use{margin-top:var(--s2);font-size:15px;color:var(--fg)}
+
+.scale-row{display:grid;grid-template-columns:minmax(150px,180px) 1fr;gap:var(--s4);padding:var(--s4) 0;border-top:1px solid var(--border);align-items:baseline}
+.scale-row:last-child{border-bottom:1px solid var(--border)}
+.scale-meta .k{font-family:var(--font-mono);font-size:14px;letter-spacing:.08em;text-transform:uppercase;color:var(--primary-600);display:block}
+.scale-meta .v{font-family:var(--font-mono);font-size:14px;color:var(--muted);display:block;margin-top:var(--s1);line-height:1.5}
+.sp-display{font-family:var(--font-display);font-size:46px;line-height:1.05;letter-spacing:-.02em}
+.sp-h1{font-family:var(--font-display);font-size:32px;line-height:1.15;letter-spacing:-.01em}
+.sp-h2{font-family:var(--font-display);font-size:24px;line-height:1.25}
+.sp-lead{font-size:19px;line-height:1.5}
+.sp-body{font-size:17px;line-height:1.6;max-width:64ch}
+.sp-small{font-size:15px;line-height:1.5;color:var(--muted)}
+.sp-data{font-family:var(--font-mono);font-size:17px;font-variant-numeric:tabular-nums;letter-spacing:0}
+.sp-label{font-family:var(--font-mono);font-size:14px;letter-spacing:.14em;text-transform:uppercase;color:var(--primary-600)}
+
+/* ---------- 4 · iconography ---------- */
+.icon-spec{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:var(--s3);margin-bottom:var(--s4)}
+.icon-spec div{padding:var(--s3);border:1px solid var(--border);border-radius:var(--r-md);background:var(--surface)}
+.icon-spec .k{font-family:var(--font-mono);font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.icon-spec .v{font-family:var(--font-mono);font-size:16px;margin-top:var(--s1);color:var(--fg)}
+.icons{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:var(--s3)}
+.ico{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:var(--s4) var(--s2) var(--s3);text-align:center;color:var(--primary-600)}
+.ico svg{width:34px;height:34px;display:block;margin:0 auto var(--s3)}
+.ico span{font-family:var(--font-mono);font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);display:block}
+.strokes{fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
+
+/* ---------- 5 · mascot & logo ---------- */
+.mstroke{fill:none;stroke:currentColor;stroke-width:2.3;stroke-linecap:round;stroke-linejoin:round}
+.mstroke-hot{fill:none;stroke:var(--accent);stroke-width:2.3;stroke-linecap:round;stroke-linejoin:round}
+.mguide{fill:none;stroke:var(--border);stroke-width:.45;stroke-dasharray:1.6 1.6}
+
+.mascot-intro{display:grid;grid-template-columns:minmax(240px,320px) 1fr;gap:var(--s4);align-items:start}
+.mascot-plate{padding:var(--s4);text-align:center;color:var(--primary-600)}
+.mascot-plate svg{width:100%;max-width:196px;height:auto;display:block;margin:0 auto}
+.mascot-plate .cap{font-family:var(--font-mono);font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:var(--s3)}
+.mascot-why dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:var(--s2) var(--s3)}
+.mascot-why dt{font-family:var(--font-mono);font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--primary-600);padding-top:4px;white-space:nowrap}
+.mascot-why dd{margin:0;font-size:16px;line-height:1.55}
+
+.exprs{display:grid;grid-template-columns:repeat(auto-fit,minmax(212px,1fr));gap:var(--s3);margin-top:var(--s4)}
+.expr{padding:var(--s4) var(--s3) var(--s3);color:var(--primary-600)}
+.expr svg{width:96px;height:96px;display:block;margin:0 auto}
+.expr .nm{font-family:var(--font-display);font-size:20px;line-height:1.2;color:var(--fg);margin-top:var(--s3)}
+.expr .ev{font-family:var(--font-mono);font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:var(--s1)}
+.expr .rule{font-size:15px;line-height:1.5;color:var(--fg);margin-top:var(--s2)}
+
+.behave{margin-top:var(--s4);padding:var(--s4);display:grid;grid-template-columns:1fr minmax(200px,248px);gap:var(--s4);align-items:start}
+.behave ol{margin:var(--s3) 0 0;padding:0;display:grid;gap:var(--s2)}
+.behave li{list-style:none;display:flex;gap:var(--s3);font-size:16px;line-height:1.55}
+.behave li .n{font-family:var(--font-mono);font-size:14px;color:var(--primary);padding-top:4px;flex:none}
+.behave-demo{border:1px dashed var(--border);border-radius:var(--r-md);padding:var(--s3);text-align:center;color:var(--primary-600)}
+.behave-demo svg{width:88px;height:88px;display:block;margin:0 auto var(--s3)}
+.behave-demo .cap{font-family:var(--font-mono);font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:var(--s3)}
+.btn-ghost{
+  font:400 16px/1 var(--font-body);padding:14px var(--s3);min-height:44px;
+  background:var(--surface);color:var(--primary-600);
+  border:1px solid var(--border);border-radius:var(--r-md);cursor:pointer;
+  display:inline-flex;align-items:center;gap:var(--s2);
+}
+.btn-ghost:hover{border-color:var(--primary-600);box-shadow:var(--shadow-1)}
+.btn-ghost:active{border-color:var(--fg);box-shadow:none;transform:translateY(1px)}
+
+@keyframes mascot-burst{
+  0%{transform:translateY(0) scale(1)}
+  30%{transform:translateY(-5%) scale(1.04)}
+  60%,100%{transform:translateY(0) scale(1)}
+}
+.mascot-art.burst{animation:mascot-burst 380ms cubic-bezier(.33,.68,.28,1) 2;transform-origin:50% 82%}
+@media (prefers-reduced-motion:reduce){.mascot-art.burst{animation:none}}
+
+.repro{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:var(--s3);margin-top:var(--s3)}
+.rp{border:1px solid var(--border);border-radius:var(--r-md);overflow:hidden;background:var(--surface)}
+.rp .stage{height:124px;display:flex;align-items:center;justify-content:center}
+.rp .stage svg{display:block}
+.rp .on-w{background:#FFFFFF;color:#000000}
+.rp .on-k{background:#000000;color:#FFFFFF}
+.rp .cap{padding:var(--s2) var(--s3);border-top:1px solid var(--border);font-family:var(--font-mono);font-size:13px;line-height:1.5;letter-spacing:.04em;color:var(--muted)}
+.rp .cap b{color:var(--fg);font-weight:400;display:block}
+
+.lockup{
+  margin-top:var(--s3);padding:var(--s5) var(--s4);display:flex;justify-content:center;
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);box-shadow:var(--shadow-1);
+}
+.clear{display:inline-block;padding:var(--s4);border:1px dashed color-mix(in srgb, var(--primary) 45%, var(--surface))}
+.lockup .inner{max-width:600px}
+.lock{display:flex;align-items:center;gap:var(--s4);color:var(--primary-600)}
+.lock svg{width:72px;height:72px;flex:none;display:block}
+.lock .wm{font-family:var(--font-display);font-size:46px;line-height:1;letter-spacing:-.015em}
+.clearnote{display:flex;flex-wrap:wrap;align-items:center;gap:var(--s2) var(--s3);margin-top:var(--s3);font-family:var(--font-mono);font-size:14px;line-height:1.5;color:var(--muted)}
+.clearnote .xm{
+  width:24px;height:24px;flex:none;border-radius:2px;
+  border:1px dashed color-mix(in srgb, var(--primary) 45%, var(--surface));background:var(--tint-primary);
+  display:inline-flex;align-items:center;justify-content:center;font-size:12px;color:var(--primary-600);
+}
+
+@media (max-width:820px){
+  .mascot-intro{grid-template-columns:1fr}
+  .behave{grid-template-columns:1fr}
+}
+
+/* ---------- 6 · app icons ---------- */
+.appicons{display:grid;grid-template-columns:repeat(auto-fit,minmax(248px,1fr));gap:var(--s4)}
+.concept .frame{
+  width:132px;height:132px;border-radius:30px; /* iOS squircle ≈ 22.4% */
+  overflow:hidden;box-shadow:var(--shadow-2);border:1px solid var(--border);
+}
+.concept .frame.small{width:60px;height:60px;border-radius:14px;margin-top:var(--s2)}
+.concept .set{display:flex;align-items:flex-end;gap:var(--s3)}
+.concept h3{font-size:21px;margin-top:var(--s3)}
+.concept .verdict{font-family:var(--font-mono);font-size:13px;letter-spacing:.1em;text-transform:uppercase;margin-top:var(--s2)}
+.concept .verdict.lead{color:var(--success)}
+.concept .verdict.hold{color:var(--muted)}
+.concept p.note{margin-top:var(--s2)}
+
+/* ---------- 7 · signature elements ---------- */
+.sig{display:grid;grid-template-columns:repeat(auto-fit,minmax(288px,1fr));gap:var(--s3)}
+.sig .item{padding:var(--s4)}
+.sig .item h3{font-size:20px}
+.sig dl{margin:var(--s3) 0 0;display:grid;grid-template-columns:auto 1fr;gap:var(--s1) var(--s2)}
+.sig dt{font-family:var(--font-mono);font-size:13px;letter-spacing:.1em;text-transform:uppercase;padding-top:3px}
+.sig dt.ok{color:var(--success)}
+.sig dt.no{color:var(--danger)}
+.sig dd{margin:0;font-size:15px;line-height:1.5;color:var(--fg)}
+
+.demo{margin-top:var(--s3);padding-top:var(--s3);border-top:1px dashed var(--border)}
+.specline{font-family:var(--font-mono);font-size:16px;font-variant-numeric:tabular-nums;color:var(--fg)}
+.specline .u{color:var(--muted)}
+.extract{margin-top:var(--s2)}
+.extract .track{position:relative;height:6px;border-radius:var(--r-sm);background:var(--track);overflow:hidden}
+.extract .fill{position:absolute;inset:0 38% 0 0;background:var(--primary);border-radius:var(--r-sm)}
+.extract .mark{position:absolute;top:-3px;left:62%;width:2px;height:12px;background:var(--accent);border-radius:1px}
+.extract .legend{display:flex;justify-content:space-between;gap:var(--s2);margin-top:var(--s2);font-family:var(--font-mono);font-size:13px;color:var(--muted)}
+
+.brewcard{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);
+  padding:var(--s4);box-shadow:var(--shadow-1);
+  clip-path:polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 0 100%);
+}
+.brewcard .top{display:flex;flex-wrap:wrap;gap:var(--s2);justify-content:space-between;align-items:baseline}
+.brewcard h3{font-size:22px}
+.brewcard .origin{font-family:var(--font-mono);font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.stars{display:flex;gap:3px;align-items:center}
+.stars svg{width:17px;height:17px;display:block}
+.star-on{fill:var(--accent)}
+.star-off{fill:none;stroke:color-mix(in srgb, var(--fg) 30%, var(--surface));stroke-width:1.75}
+.stars .count{font-family:var(--font-mono);font-size:14px;color:var(--muted);margin-left:var(--s1)}
+.tick-scale{display:flex;gap:var(--s2);align-items:flex-end;height:22px;margin-top:var(--s3)}
+.tick-scale i{width:2px;flex:none;background:var(--border);border-radius:1px;height:10px}
+.tick-scale i.tall{height:18px;background:color-mix(in srgb, var(--fg) 45%, var(--surface))}
+.tick-scale i.hot{background:var(--accent);height:22px;width:3px}
+
+/* ---------- state spec ---------- */
+.states{display:grid;grid-template-columns:repeat(auto-fit,minmax(272px,1fr));gap:var(--s4);align-items:start}
+.statetable{width:100%;border-collapse:collapse;font-size:15px}
+.statetable caption{text-align:left;font-family:var(--font-mono);font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding-bottom:var(--s2)}
+.statetable th,.statetable td{text-align:left;padding:10px var(--s2);border-top:1px solid var(--border);vertical-align:top}
+.statetable th{font-weight:400;font-family:var(--font-mono);font-size:14px;color:var(--primary-600);white-space:nowrap}
+.statetable td{font-family:var(--font-mono);font-size:14px;color:var(--fg)}
+.btn{
+  font:400 17px/1 var(--font-body);
+  padding:15px var(--s4);min-height:44px;
+  background:var(--primary);color:var(--surface);
+  border:1px solid var(--primary);border-radius:var(--r-md);
+  cursor:pointer;box-shadow:var(--shadow-1);
+  display:inline-flex;align-items:center;gap:var(--s2);
+}
+.btn:hover{background:var(--primary-600);border-color:var(--primary-600);color:var(--surface)}
+.btn:active{background:var(--primary-600);border-color:var(--fg);box-shadow:none;transform:translateY(1px)}
+.btn svg{width:19px;height:19px}
+.try{display:flex;flex-direction:column;gap:var(--s2);align-items:flex-start}
+
+/* ---------- 8 · principles ---------- */
+.ratio-bar{display:flex;height:52px;border-radius:var(--r-md);overflow:hidden;border:1px solid var(--border)}
+.ratio-bar div{height:100%}
+.rb-60{flex:0 0 60%;background:var(--bg);border-right:1px solid var(--border)}
+.rb-30{flex:0 0 30%;background:var(--primary)}
+.rb-10{flex:0 0 10%;background:var(--accent)}
+.ratio-legend{display:flex;flex-wrap:wrap;gap:var(--s2) var(--s4);margin:var(--s3) 0 var(--s4);padding:0}
+.ratio-legend li{list-style:none;display:flex;align-items:center;gap:var(--s2);font-family:var(--font-mono);font-size:14px;color:var(--fg)}
+.ratio-legend i{width:12px;height:12px;border-radius:3px;flex:none;border:1px solid var(--border)}
+.ratio-legend .k{color:var(--muted)}
+.principles{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:var(--s3)}
+.pr{padding:var(--s3) var(--s4);border:1px solid var(--border);border-radius:var(--r-md);background:var(--surface);display:flex;gap:var(--s3)}
+.pr .n{font-family:var(--font-mono);font-size:14px;color:var(--primary);padding-top:3px}
+.pr p{font-size:16px;line-height:1.55}
+.pr b{font-weight:600}
+.never{margin-top:var(--s4);padding:var(--s4);border:1px solid var(--border);border-radius:var(--r-md);background:var(--surface)}
+.never h3{font-size:20px;color:var(--danger)}
+.never ul{margin:var(--s3) 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:var(--s2) var(--s4)}
+.never li{list-style:none;font-size:16px;line-height:1.5;display:flex;gap:var(--s2)}
+.never li svg{width:17px;height:17px;flex:none;margin-top:4px;color:var(--danger)}
+
+footer{margin-top:var(--s5);padding-top:var(--s4);border-top:1px solid var(--border);display:flex;flex-wrap:wrap;gap:var(--s3);justify-content:space-between;font-family:var(--font-mono);font-size:14px;color:var(--muted)}
+
+@media (max-width:640px){
+  .wordmark h1{font-size:34px}
+  .sp-display{font-size:34px}
+  .scale-row{grid-template-columns:1fr;gap:var(--s2)}
+  .board{padding:var(--s4) var(--s3) var(--s5)}
+}
+</style>
+</head>
+<body>
+<div class="board" data-od-id="brand-board">
+
+  <!-- ===== masthead ===== -->
+  <header class="masthead" data-od-id="masthead">
+    <div>
+      <p class="label">Brand board · v1.1 · light theme only</p>
+      <div class="wordmark" style="margin-top:var(--s2)">
+        <h1>Brewlog</h1><span class="dot" aria-hidden="true"></span>
+      </div>
+    </div>
+    <nav class="jump" aria-label="Sections" data-od-id="section-nav">
+      <a href="#identity">01 Identity</a>
+      <a href="#palette">02 Palette</a>
+      <a href="#type">03 Type</a>
+      <a href="#icons">04 Icons</a>
+      <a href="#mascot">05 Mascot</a>
+      <a href="#appicon">06 App icon</a>
+      <a href="#signature">07 Signature</a>
+      <a href="#principles">08 Principles</a>
+    </nav>
+  </header>
+
+  <!-- ===== 1 · IDENTITY ===== -->
+  <section id="identity" data-od-id="section-identity">
+    <div class="sec-head"><span class="num">01</span><h2>Identity</h2></div>
+    <p class="sec-sub note">The fixed centre of the system: what the product is, in one line, and the four words every later decision is measured against.</p>
+
+    <div class="identity">
+      <div class="card essence" data-od-id="identity-essence">
+        <p class="label">Essence</p>
+        <p class="lead" style="margin-top:var(--s3)">A tasting journal for people who <em>weigh their coffee</em>: log the brew, rate the cup, learn what your good days have in common.</p>
+        <p class="note" style="margin-top:var(--s3)">iOS, single-handed, entered mid-pour. Notes are written in the ninety seconds while the water drains, so the interface must accept a dose and a number faster than it asks for prose.</p>
+      </div>
+
+      <div>
+        <p class="label" style="margin-bottom:var(--s3)">Mood</p>
+        <div class="mood" data-od-id="mood-words">
+          <span>Warm</span><span>Artisanal</span><span>Precise</span><span>Calm</span>
+        </div>
+        <p class="note" style="margin-top:var(--s3)">Warm and artisanal come from paper, ink and old-style serif: never from a brown wash. Precise and calm come from tabular numbers, hairlines and one accent.</p>
+        <div class="spec-strip" style="margin-top:var(--s4)" data-od-id="identity-spec-strip">
+          <span>V60-02</span><span>15 g</span><span>250 ml</span><span>94 °C</span><span>1:16.7</span><span>2:45</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="rule" aria-hidden="true"></div>
+
+  <!-- ===== 2 · PALETTE ===== -->
+  <section id="palette" data-od-id="section-palette">
+    <div class="sec-head"><span class="num">02</span><h2>Palette</h2></div>
+    <p class="sec-sub note">Six core values carry the product; four support tokens handle secondary text, edges and status. Nothing outside this list may enter a screen.</p>
+
+    <div class="swatches" data-od-id="palette-core">
+      <div class="sw">
+        <div class="chip" style="background:var(--bg)"><span class="ratio" style="color:var(--fg)">Aa 15.9:1</span></div>
+        <div class="meta"><span class="name">Kraft Paper</span><code class="tok">--bg</code><span class="hex">#F6F3EE</span>
+          <p class="role">App canvas. Barely warm: a paper white, not a cream.</p></div>
+      </div>
+      <div class="sw">
+        <div class="chip" style="background:var(--surface)"><span class="ratio" style="color:var(--primary-600)">Aa 12.6:1</span></div>
+        <div class="meta"><span class="name">Filter White</span><code class="tok">--surface</code><span class="hex">#FFFFFF</span>
+          <p class="role">Cards, sheets, brew records. Reads as a slip laid on the desk.</p></div>
+      </div>
+      <div class="sw">
+        <div class="chip" style="background:var(--fg)"><span class="ratio" style="color:var(--bg)">Aa 15.9:1</span></div>
+        <div class="meta"><span class="name">Espresso Ink</span><code class="tok">--fg</code><span class="hex">#1E1815</span>
+          <p class="role">All primary text and icon strokes. Warm black, never pure #000.</p></div>
+      </div>
+      <div class="sw">
+        <div class="chip" style="background:var(--primary)"><span class="ratio" style="color:var(--surface)">Aa 9.1:1</span></div>
+        <div class="meta"><span class="name">Roast</span><code class="tok">--primary</code><span class="hex">#6B3C2A</span>
+          <p class="role">Primary control fill, active tab, extraction fill, brand marks.</p></div>
+      </div>
+      <div class="sw">
+        <div class="chip" style="background:var(--primary-600)"><span class="ratio" style="color:var(--surface)">Aa 12.6:1</span></div>
+        <div class="meta"><span class="name">Deep Roast</span><code class="tok">--primary-600</code><span class="hex">#4E2A1D</span>
+          <p class="role">Hover and pressed states, links, brand text on light surfaces.</p></div>
+      </div>
+      <div class="sw">
+        <div class="chip" style="background:var(--accent)"><span class="ratio" style="color:var(--fg)">Aa 6.4:1</span></div>
+        <div class="meta"><span class="name">Honey</span><code class="tok">--accent</code><span class="hex">#D18F2C</span>
+          <p class="role">Ratings, extraction marker, running timer. Fills only: never text.</p></div>
+      </div>
+    </div>
+
+    <div class="swatches" style="margin-top:var(--s3)" data-od-id="palette-support">
+      <div class="sw sw--support">
+        <div class="chip" style="background:var(--muted)"><span class="ratio" style="color:var(--surface)">Aa 6.1:1</span></div>
+        <div class="meta"><span class="name">Cupping Note</span><code class="tok">--muted</code><span class="hex">#6B6058</span>
+          <p class="role">Secondary text, units, timestamps. 15 px minimum.</p></div>
+      </div>
+      <div class="sw sw--support">
+        <div class="chip" style="background:var(--border)"></div>
+        <div class="meta"><span class="name">Chaff</span><code class="tok">--border</code><span class="hex">#E2DACE</span>
+          <p class="role">1 px hairlines, card edges, tick marks. Never text.</p></div>
+      </div>
+      <div class="sw sw--support">
+        <div class="chip" style="background:var(--danger)"><span class="ratio" style="color:var(--surface)">Aa 7.5:1</span></div>
+        <div class="meta"><span class="name">Over-extracted</span><code class="tok">--danger</code><span class="hex">#9E2B1E</span>
+          <p class="role">Delete a brew; a value outside the recipe's range.</p></div>
+      </div>
+      <div class="sw sw--support">
+        <div class="chip" style="background:var(--success)"><span class="ratio" style="color:var(--surface)">Aa 6.2:1</span></div>
+        <div class="meta"><span class="name">Coffee Leaf</span><code class="tok">--success</code><span class="hex">#3E6B3A</span>
+          <p class="role">Saved, in-range, dialled in. Status only, never decoration.</p></div>
+      </div>
+    </div>
+
+    <div class="contrast" data-od-id="palette-contrast">
+      <div class="cx cx--fg">
+        <p class="pair">--fg on --bg</p>
+        <p class="val">15.9 : 1</p>
+        <p class="aaa">WCAG AAA · body &amp; headings</p>
+      </div>
+      <div class="cx cx--pr">
+        <p class="pair">--primary-600 on --surface</p>
+        <p class="val">12.6 : 1</p>
+        <p class="aaa">WCAG AAA · brand text on cards</p>
+      </div>
+    </div>
+    <ul class="plain ratio-list" data-od-id="palette-extra-ratios">
+      <li>--muted on --bg <b>5.5:1</b></li>
+      <li>--muted on --surface <b>6.1:1</b></li>
+      <li>--primary on --surface <b>9.1:1</b></li>
+      <li>--fg on --accent <b>6.4:1</b></li>
+      <li>--surface on --danger <b>7.5:1</b></li>
+      <li>--surface on --success <b>6.2:1</b></li>
+    </ul>
+  </section>
+
+  <div class="rule" aria-hidden="true"></div>
+
+  <!-- ===== 3 · TYPOGRAPHY ===== -->
+  <section id="type" data-od-id="section-typography">
+    <div class="sec-head"><span class="num">03</span><h2>Typography</h2></div>
+    <p class="sec-sub note">System stacks only: no webfonts, no CDN, nothing to load. Old-style serif for voice, the platform sans for interface copy, and a mono that owns every number in the product.</p>
+
+    <div class="stacks" data-od-id="type-stacks">
+      <div class="card stack">
+        <p class="label">Display · --font-display</p>
+        <p class="fam" style="font-family:var(--font-display)">Iowan Old Style</p>
+        <code>"Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif</code>
+        <p class="use">Screen titles, origin names, empty-state sentences. Set tight (-0.02em) and large; never used below 19 px.</p>
+      </div>
+      <div class="card stack">
+        <p class="label">Body · --font-body</p>
+        <p class="fam" style="font-family:var(--font-body)">San Francisco / Segoe UI</p>
+        <code>-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, "Helvetica Neue", sans-serif</code>
+        <p class="use">All interface copy, tasting notes, labels, buttons. 17 px default, 15 px floor.</p>
+      </div>
+      <div class="card stack">
+        <p class="label">Data · --font-mono</p>
+        <p class="fam mono">SF Mono / Menlo</p>
+        <code>ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace</code>
+        <p class="use">Doses, ratios, times, temperatures, grind clicks, eyebrow labels. Always <span class="mono">tabular-nums</span> so columns of brews align.</p>
+      </div>
+    </div>
+
+    <div data-od-id="type-scale">
+      <div class="scale-row">
+        <div class="scale-meta"><span class="k">Display</span><span class="v">46 / 48 · -0.02em<br>display serif</span></div>
+        <p class="sp-display">Ethiopia Yirgacheffe</p>
+      </div>
+      <div class="scale-row">
+        <div class="scale-meta"><span class="k">Title</span><span class="v">32 / 37 · -0.01em<br>display serif</span></div>
+        <p class="sp-h1">Sixty-one brews, eleven origins</p>
+      </div>
+      <div class="scale-row">
+        <div class="scale-meta"><span class="k">Section</span><span class="v">24 / 30<br>display serif</span></div>
+        <p class="sp-h2">What your best cups have in common</p>
+      </div>
+      <div class="scale-row">
+        <div class="scale-meta"><span class="k">Lead</span><span class="v">19 / 29<br>body sans</span></div>
+        <p class="sp-lead">Jasmine and bergamot up front, a blueberry acidity that only shows up once the cup drops below 60 °C.</p>
+      </div>
+      <div class="scale-row">
+        <div class="scale-meta"><span class="k">Body</span><span class="v">17 / 27<br>body sans</span></div>
+        <p class="sp-body">Brewed on the V60-02 with a paper filter rinsed twice. 15 g ground at 22 clicks on the Comandante C40, 50 g bloom for 40 seconds, then three pours to 250 ml. Total drawdown 2:45: twenty seconds faster than the same coffee last Sunday, and noticeably sweeter for it.</p>
+      </div>
+      <div class="scale-row">
+        <div class="scale-meta"><span class="k">Caption</span><span class="v">15 / 23<br>body sans · --muted</span></div>
+        <p class="sp-small">Roasted 11 days ago · Guji, 1 950 m · washed heirloom · logged 07:14</p>
+      </div>
+      <div class="scale-row">
+        <div class="scale-meta"><span class="k">Data</span><span class="v">17 / 24 · tabular<br>mono</span></div>
+        <p class="sp-data">15.0 g&nbsp; 250 ml&nbsp; 1:16.7&nbsp; 94 °C&nbsp; 2:45</p>
+      </div>
+      <div class="scale-row">
+        <div class="scale-meta"><span class="k">Label</span><span class="v">14 / 17 · 0.14em<br>mono · uppercase · UI labels only</span></div>
+        <p class="sp-label">Dose &amp; ratio</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="rule" aria-hidden="true"></div>
+
+  <!-- ===== 4 · ICONOGRAPHY ===== -->
+  <section id="icons" data-od-id="section-iconography">
+    <div class="sec-head"><span class="num">04</span><h2>Iconography</h2></div>
+    <p class="sec-sub note">One family, drawn like a workshop diagram: open strokes, no fills, no perspective. Icons inherit text colour so they never need a colour decision of their own.</p>
+
+    <div class="icon-spec" data-od-id="icon-spec">
+      <div><p class="k">Grid</p><p class="v">24 × 24, 2 px keyline</p></div>
+      <div><p class="k">Stroke width</p><p class="v">1.75 px, uniform</p></div>
+      <div><p class="k">Corners &amp; caps</p><p class="v">round caps, round joins, r ≈ 2</p></div>
+      <div><p class="k">Fill &amp; colour</p><p class="v">none · currentColor</p></div>
+    </div>
+
+    <div class="icons" data-od-id="icon-row">
+      <div class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><g class="strokes">
+        <path d="M6.5 9.5h6.5v7.2a3 3 0 0 1-3 3H9.5a3 3 0 0 1-3-3V9.5Z"/>
+        <path d="M13 12c3.1-.5 4.3-2.2 4.3-4.6V4.2"/>
+        <path d="M6.5 11.6H5a2 2 0 0 0 0 4h1.5"/>
+        <path d="M8.6 9.5V8h2.8v1.5"/></g></svg><span>Kettle</span></div>
+
+      <div class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><g class="strokes">
+        <circle cx="12" cy="13.8" r="7.4"/>
+        <path d="M12 13.8V9.4"/>
+        <path d="M12 13.8h3"/>
+        <path d="M9.6 3.4h4.8"/>
+        <path d="M12 3.4v3"/></g></svg><span>Timer</span></div>
+
+      <div class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><g class="strokes">
+        <ellipse cx="9.3" cy="9.6" rx="3.5" ry="5.1" transform="rotate(-38 9.3 9.6)"/>
+        <path d="M7.1 12c1.8-1.2 3.1-3.3 3.3-5.3"/>
+        <ellipse cx="15" cy="15.2" rx="3.5" ry="5.1" transform="rotate(-38 15 15.2)"/>
+        <path d="M12.8 17.6c1.8-1.2 3.1-3.3 3.3-5.3"/></g></svg><span>Beans</span></div>
+
+      <div class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><g class="strokes">
+        <rect x="3.2" y="9.4" width="17.6" height="10.4" rx="2.4"/>
+        <path d="M3.2 13.4h17.6"/>
+        <path d="M9.4 6.6h5.2"/>
+        <path d="M12 6.6v2.8"/>
+        <path d="M8.2 16.6h4.4"/>
+        <path d="M15.6 16.6h1.4"/></g></svg><span>Scale</span></div>
+
+      <div class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><g class="strokes">
+        <path d="M4.6 8.8h11.2v4.6a5.6 5.6 0 0 1-5.6 5.6h0a5.6 5.6 0 0 1-5.6-5.6V8.8Z"/>
+        <path d="M15.8 10.4h1.9a2.3 2.3 0 0 1 0 4.6h-1.9"/>
+        <path d="M8.4 4.2c-.9 1 .9 1.8 0 2.8"/>
+        <path d="M12.2 4.2c-.9 1 .9 1.8 0 2.8"/></g></svg><span>Cup</span></div>
+
+      <div class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><g class="strokes">
+        <path d="M4 3.6v16.8h16.4"/>
+        <path d="M7.8 17.2v-4.4"/>
+        <path d="M11.6 17.2v-8"/>
+        <path d="M15.4 17.2v-5.6"/>
+        <path d="M19.2 17.2v-9.8"/></g></svg><span>Chart</span></div>
+    </div>
+  </section>
+
+  <div class="rule" aria-hidden="true"></div>
+
+  <!-- ===== 5 · MASCOT AND LOGO ===== -->
+  <section id="mascot" data-od-id="section-mascot">
+    <div class="sec-head"><span class="num">05</span><h2>Mascot and logo</h2></div>
+    <p class="sec-sub note">v1.1 overrides v1 on exactly one point: Brewlog has a mascot. It is not an illustration: it is one more member of the icon family, drawn on the same grid at the same stroke, given a face and a strict set of rules about when it is allowed to move.</p>
+
+    <div class="mascot-intro" data-od-id="mascot-character">
+      <div class="card mascot-plate" data-od-id="mascot-master">
+        <svg viewBox="0 0 32 32" role="img" aria-label="Brewlog mascot: a pour-over dripper standing on two legs, with two eye strokes, a straight mouth and a falling drip, drawn in open strokes">
+          <g class="mguide" aria-hidden="true">
+            <rect x="1" y="1" width="30" height="30" rx="1.5"/>
+            <path d="M16 1V31"/>
+          </g>
+          <g class="mstroke">
+            <path d="M3.6 7.2H28.4"/>
+            <path d="M4.8 7.2 13.2 21H18.8L27.2 7.2"/>
+            <path d="M13.2 21 11.8 26.4"/>
+            <path d="M18.8 21 20.2 26.4"/>
+            <path d="M13 11.4V13.6"/>
+            <path d="M19 11.4V13.6"/>
+            <path d="M14.3 17H17.7"/>
+            <path d="M16 23.8V25.6"/>
+          </g>
+        </svg>
+        <p class="cap">Master drawing · calm · 32 × 32 keyline</p>
+      </div>
+
+      <div class="mascot-why">
+        <dl>
+          <dt>Who it is</dt><dd>The V60 dripper standing on its legs: the one object every entry in the log passes through. Cone, rim, two legs, a face and the drip. Eight strokes, no more.</dd>
+          <dt>Grid</dt><dd>32 × 32 with a 2 px keyline, drawn on the vertical centreline. Scaled from the 24 × 24 icon grid so the two families stay siblings rather than cousins.</dd>
+          <dt>Stroke</dt><dd>2.3 px at 32: the same optical ratio as the icons' 1.75 px at 24. Round caps, round joins, no fill, <span class="mono">currentColor</span>. Nothing is ever filled in, not even the eyes.</dd>
+          <dt>Face</dt><dd>Two 2.2-unit eye strokes and one 3.4-unit mouth, and that is the whole vocabulary. No pupils, no eyebrows, no blush, no cheeks, no arms. The four states re-cut the same two eye strokes: vertical, arched, angled, closed.</dd>
+          <dt>Clearance</dt><dd>No stroke edge comes closer than 0.7 units to the cone wall, so the face never welds itself to the body at any size. The drip hangs 0.5 units clear of the spout: it is falling, not attached.</dd>
+          <dt>Colour</dt><dd>Inherits text colour like any other icon. The only honey it may carry is the drip, and only while the timer is running: which keeps principle 02 intact.</dd>
+          <dt>Precise, warm</dt><dd>It reads warm because the strokes are open and the proportions are generous, not because it is grinning. Nothing squashes, nothing bounces, nothing waves.</dd>
+        </dl>
+        <div class="spec-strip" style="margin-top:var(--s4)" data-od-id="mascot-spec-strip">
+          <span>32 × 32</span><span>stroke 2.3</span><span>8 strokes</span><span>4 states</span><span>1 accent max</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- expressions -->
+    <p class="label" style="margin-top:var(--s5)">Expressions: four states, no more</p>
+    <div class="exprs" data-od-id="mascot-expressions">
+
+      <div class="card expr" data-od-id="mascot-calm">
+        <svg viewBox="0 0 32 32" role="img" aria-label="Calm: eyes as two short vertical strokes, straight mouth, ink drip">
+          <g class="mstroke">
+            <path d="M3.6 7.2H28.4"/>
+            <path d="M4.8 7.2 13.2 21H18.8L27.2 7.2"/>
+            <path d="M13.2 21 11.8 26.4"/><path d="M18.8 21 20.2 26.4"/>
+            <path d="M13 11.4V13.6"/><path d="M19 11.4V13.6"/>
+            <path d="M14.3 17H17.7"/>
+            <path d="M16 23.8V25.6"/>
+          </g>
+        </svg>
+        <p class="nm">Calm</p>
+        <p class="ev">Default · idle</p>
+        <p class="rule">The only state that may sit on screen indefinitely. Used in the log header and the tab bar; static, no motion, ever.</p>
+      </div>
+
+      <div class="card expr" data-od-id="mascot-pleased">
+        <svg viewBox="0 0 32 32" role="img" aria-label="Pleased: eyes as two upward arcs, mouth curved upward, ink drip">
+          <g class="mstroke">
+            <path d="M3.6 7.2H28.4"/>
+            <path d="M4.8 7.2 13.2 21H18.8L27.2 7.2"/>
+            <path d="M13.2 21 11.8 26.4"/><path d="M18.8 21 20.2 26.4"/>
+            <path d="M12.1 13.3Q13 11.2 13.9 13.3"/><path d="M18.1 13.3Q19 11.2 19.9 13.3"/>
+            <path d="M14 16.5Q16 19.1 18 16.5"/>
+            <path d="M16 23.8V25.6"/>
+          </g>
+        </svg>
+        <p class="nm">Pleased</p>
+        <p class="ev">Event · brew logged</p>
+        <p class="rule">Fires once on save, on the confirmation screen only. Two burst iterations, then it returns to calm and stays there.</p>
+      </div>
+
+      <div class="card expr" data-od-id="mascot-focused">
+        <svg viewBox="0 0 32 32" role="img" aria-label="Focused: eyes as two short strokes angled inward, tight mouth, honey drip marking the running timer">
+          <g class="mstroke">
+            <path d="M3.6 7.2H28.4"/>
+            <path d="M4.8 7.2 13.2 21H18.8L27.2 7.2"/>
+            <path d="M13.2 21 11.8 26.4"/><path d="M18.8 21 20.2 26.4"/>
+            <path d="M12.5 11.9 13.5 13.5"/><path d="M19.5 11.9 18.5 13.5"/>
+            <path d="M14.9 17H17.1"/>
+          </g>
+          <g class="mstroke-hot"><path d="M16 23.8V25.6"/></g>
+        </svg>
+        <p class="nm">Focused</p>
+        <p class="ev">Event · timer running</p>
+        <p class="rule">Held for the length of the drawdown and nothing longer. The drip turns honey: this is the mascot's one licensed accent, and it counts as the screen's single honey element.</p>
+      </div>
+
+      <div class="card expr" data-od-id="mascot-resting">
+        <svg viewBox="0 0 32 32" role="img" aria-label="Resting: eyes closed as two horizontal strokes, flat mouth, no drip">
+          <g class="mstroke">
+            <path d="M3.6 7.2H28.4"/>
+            <path d="M4.8 7.2 13.2 21H18.8L27.2 7.2"/>
+            <path d="M13.2 21 11.8 26.4"/><path d="M18.8 21 20.2 26.4"/>
+            <path d="M11.9 13H14.1"/><path d="M17.9 13H20.1"/>
+            <path d="M14.8 17H17.2"/>
+          </g>
+        </svg>
+        <p class="nm">Resting</p>
+        <p class="ev">Empty state</p>
+        <p class="rule">Eyes closed, drip removed: the dripper is dry. Used once, above the empty-log sentence; never as a loading indicator.</p>
+      </div>
+    </div>
+
+    <!-- behaviour -->
+    <div class="card behave" data-od-id="mascot-behaviour">
+      <div>
+        <p class="label">Behaviour rules</p>
+        <h3 style="font-size:20px;margin-top:var(--s2)">Calm by default, expressive only on events</h3>
+        <ol>
+          <li><span class="n">01</span><span><b>Calm is the resting state.</b> If nothing has happened, the mascot is calm and completely still. A state other than calm without a triggering event is a bug.</span></li>
+          <li><span class="n">02</span><span><b>Expression follows an event, never a mood.</b> Pleased needs a saved brew, focused needs a running timer, resting needs an empty log. No idle personality, no greetings, no tips.</span></li>
+          <li><span class="n">03</span><span><b>Motion arrives in short bursts: 2–3 iterations, 380 ms each, then done.</b> One 180 ms ease in and out per burst, no bounce, no overshoot beyond 4 %.</span></li>
+          <li><span class="n">04</span><span><b>Never an infinite loop.</b> Nothing on the mascot is set to <span class="mono">infinite</span>. Principle 06 still holds: the brew timer is the only element allowed to animate continuously, and the mascot is not the timer.</span></li>
+          <li><span class="n">05</span><span><b>Never animated beside text the user is editing.</b> While a tasting-note field has focus the mascot is frozen at calm: and it is never placed inside or adjacent to that field's container.</span></li>
+          <li><span class="n">06</span><span><b>One mascot per screen, and it yields.</b> It is decoration with a job, so it is the first thing dropped when space is short. Under <span class="mono">prefers-reduced-motion</span> the state still changes; the burst does not play.</span></li>
+        </ol>
+      </div>
+      <div class="behave-demo">
+        <p class="label" style="margin-bottom:var(--s3)">Burst specimen</p>
+        <svg class="mascot-art" data-od-id="mascot-burst-target" viewBox="0 0 32 32" role="img" aria-label="Mascot burst specimen">
+          <g class="mstroke">
+            <path d="M3.6 7.2H28.4"/>
+            <path d="M4.8 7.2 13.2 21H18.8L27.2 7.2"/>
+            <path d="M13.2 21 11.8 26.4"/><path d="M18.8 21 20.2 26.4"/>
+            <path d="M12.1 13.3Q13 11.2 13.9 13.3"/><path d="M18.1 13.3Q19 11.2 19.9 13.3"/>
+            <path d="M14 16.5Q16 19.1 18 16.5"/>
+            <path d="M16 23.8V25.6"/>
+          </g>
+        </svg>
+        <button class="btn-ghost" type="button" data-od-id="mascot-burst-trigger">Log a brew</button>
+        <p class="cap">2 iterations · 760 ms total · then still</p>
+      </div>
+    </div>
+
+    <!-- single-ink reproduction -->
+    <p class="label" style="margin-top:var(--s5)">Single-ink legibility: reproduction test, outside the palette</p>
+    <p class="sec-sub note" style="margin-top:var(--s2)">The product never uses pure black; this row exists to prove the mark survives a one-ink context: a stamp, a favicon, a monochrome App Store asset. At and below 32 px the mouth and the drip are dropped: the reduced mark keeps the silhouette and the eyes, which is all that reads at that size.</p>
+    <div class="repro" data-od-id="mascot-repro">
+
+      <div class="rp">
+        <div class="stage on-w">
+          <svg viewBox="0 0 32 32" width="24" height="24" role="img" aria-label="Reduced mascot mark, black on white, 24 pixels">
+            <g class="mstroke">
+              <path d="M3.6 7.2H28.4"/>
+              <path d="M4.8 7.2 13.2 21H18.8L27.2 7.2"/>
+              <path d="M13.2 21 11.8 26.4"/><path d="M18.8 21 20.2 26.4"/>
+              <path d="M13 11.4V13.6"/><path d="M19 11.4V13.6"/>
+            </g>
+          </svg>
+        </div>
+        <p class="cap"><b>24 px · black on white</b>#000 on #FFF · reduced mark</p>
+      </div>
+
+      <div class="rp">
+        <div class="stage on-k">
+          <svg viewBox="0 0 32 32" width="24" height="24" role="img" aria-label="Reduced mascot mark, white on black, 24 pixels">
+            <g class="mstroke">
+              <path d="M3.6 7.2H28.4"/>
+              <path d="M4.8 7.2 13.2 21H18.8L27.2 7.2"/>
+              <path d="M13.2 21 11.8 26.4"/><path d="M18.8 21 20.2 26.4"/>
+              <path d="M13 11.4V13.6"/><path d="M19 11.4V13.6"/>
+            </g>
+          </svg>
+        </div>
+        <p class="cap"><b>24 px · white on black</b>Strokes gain ≈ 5 % optical weight: accepted</p>
+      </div>
+
+      <div class="rp">
+        <div class="stage on-w">
+          <svg viewBox="0 0 32 32" width="64" height="64" role="img" aria-label="Full mascot mark, black on white, 64 pixels">
+            <g class="mstroke">
+              <path d="M3.6 7.2H28.4"/>
+              <path d="M4.8 7.2 13.2 21H18.8L27.2 7.2"/>
+              <path d="M13.2 21 11.8 26.4"/><path d="M18.8 21 20.2 26.4"/>
+              <path d="M13 11.4V13.6"/><path d="M19 11.4V13.6"/>
+              <path d="M14.3 17H17.7"/>
+              <path d="M16 23.8V25.6"/>
+            </g>
+          </svg>
+        </div>
+        <p class="cap"><b>64 px · black on white</b>Full mark · mouth and drip both hold</p>
+      </div>
+
+      <div class="rp">
+        <div class="stage on-k">
+          <svg viewBox="0 0 32 32" width="64" height="64" role="img" aria-label="Full mascot mark, white on black, 64 pixels">
+            <g class="mstroke">
+              <path d="M3.6 7.2H28.4"/>
+              <path d="M4.8 7.2 13.2 21H18.8L27.2 7.2"/>
+              <path d="M13.2 21 11.8 26.4"/><path d="M18.8 21 20.2 26.4"/>
+              <path d="M13 11.4V13.6"/><path d="M19 11.4V13.6"/>
+              <path d="M14.3 17H17.7"/>
+              <path d="M16 23.8V25.6"/>
+            </g>
+          </svg>
+        </div>
+        <p class="cap"><b>64 px · white on black</b>Eye strokes read as dots: the intended floor</p>
+      </div>
+    </div>
+
+    <!-- lockup -->
+    <p class="label" style="margin-top:var(--s5)">Logo lockup: mark plus wordmark</p>
+    <div class="lockup" data-od-id="mascot-lockup">
+      <div class="inner">
+        <div class="clear">
+          <div class="lock">
+            <svg viewBox="0 0 32 32" role="img" aria-label="Brewlog mark">
+              <g class="mstroke">
+                <path d="M3.6 7.2H28.4"/>
+                <path d="M4.8 7.2 13.2 21H18.8L27.2 7.2"/>
+                <path d="M13.2 21 11.8 26.4"/><path d="M18.8 21 20.2 26.4"/>
+                <path d="M13 11.4V13.6"/><path d="M19 11.4V13.6"/>
+                <path d="M14.3 17H17.7"/>
+                <path d="M16 23.8V25.6"/>
+              </g>
+            </svg>
+            <span class="wm">Brewlog</span>
+          </div>
+        </div>
+        <div class="clearnote">
+          <span class="xm" aria-hidden="true">x</span>
+          <span>x = ⅓ of the mark's 32 × 32 box: 24 px at this size</span>
+        </div>
+        <div class="clearnote" style="margin-top:var(--s2)">
+          <span>Clearspace: x on all four sides (dashed). Mark-to-wordmark gap: also x.</span>
+        </div>
+        <div class="clearnote" style="margin-top:var(--s2)">
+          <span>Wordmark in the display serif at 46 px, both parts in --primary-600. The honey dot belongs to the wordmark-only lockup and is dropped whenever the mark is present, so the pair never carries two accents.</span>
+        </div>
+        <div class="clearnote" style="margin-top:var(--s2)">
+          <span>Horizontal lockup only. Never stack, never rotate, never set the wordmark in the body sans or the mono.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="rule" aria-hidden="true"></div>
+
+  <!-- ===== 6 · APP ICON CONCEPTS ===== -->
+  <section id="appicon" data-od-id="section-app-icons">
+    <div class="sec-head"><span class="num">06</span><h2>App icon concepts</h2></div>
+    <p class="sec-sub note">Four routes at iOS proportions, each shown at 132 px and at 60 px because the home screen is the only size that matters. Route D carries the v1.1 mascot. Pure SVG and CSS: no raster art.</p>
+
+    <div class="appicons">
+      <!-- A · Bloom -->
+      <div class="concept" data-od-id="app-icon-bloom">
+        <div class="set">
+          <div class="frame">
+            <svg viewBox="0 0 132 132" width="132" height="132" role="img" aria-label="Bloom concept: concentric pour rings on roast, one honey ring">
+              <rect width="132" height="132" fill="var(--primary)"/>
+              <g fill="none" stroke="var(--bg)" stroke-width="3.5" opacity="0.55">
+                <circle cx="66" cy="66" r="47"/><circle cx="66" cy="66" r="35"/>
+              </g>
+              <circle cx="66" cy="66" r="23" fill="none" stroke="var(--accent)" stroke-width="4"/>
+              <circle cx="66" cy="66" r="9" fill="var(--bg)"/>
+            </svg>
+          </div>
+          <div class="frame small">
+            <svg viewBox="0 0 132 132" width="60" height="60" aria-hidden="true">
+              <rect width="132" height="132" fill="var(--primary)"/>
+              <g fill="none" stroke="var(--bg)" stroke-width="6" opacity="0.55"><circle cx="66" cy="66" r="47"/><circle cx="66" cy="66" r="35"/></g>
+              <circle cx="66" cy="66" r="23" fill="none" stroke="var(--accent)" stroke-width="7"/>
+              <circle cx="66" cy="66" r="9" fill="var(--bg)"/>
+            </svg>
+          </div>
+        </div>
+        <h3>A · Bloom</h3>
+        <p class="note">The bed seen from directly above: three pour rings, the honey one marking where the water is now. Abstract enough to avoid the cup cliché, and it survives the 60 px test.</p>
+        <p class="verdict hold">Strong alternate: mascot-free route</p>
+      </div>
+
+      <!-- B · Pour -->
+      <div class="concept" data-od-id="app-icon-pour">
+        <div class="set">
+          <div class="frame">
+            <svg viewBox="0 0 132 132" width="132" height="132" role="img" aria-label="Pour concept: gooseneck stream arc into a cup on paper">
+              <rect width="132" height="132" fill="var(--bg)"/>
+              <path d="M36 88h60v10a26 26 0 0 1-26 26h-8a26 26 0 0 1-26-26V88Z" fill="var(--primary)"/>
+              <path d="M96 92h6a12 12 0 0 1 0 24h-6" fill="none" stroke="var(--primary)" stroke-width="7" stroke-linecap="round"/>
+              <path d="M40 18c26 0 30 14 30 30v34" fill="none" stroke="var(--primary-600)" stroke-width="7" stroke-linecap="round"/>
+              <circle cx="70" cy="70" r="6" fill="var(--accent)"/>
+            </svg>
+          </div>
+          <div class="frame small">
+            <svg viewBox="0 0 132 132" width="60" height="60" aria-hidden="true">
+              <rect width="132" height="132" fill="var(--bg)"/>
+              <path d="M36 88h60v10a26 26 0 0 1-26 26h-8a26 26 0 0 1-26-26V88Z" fill="var(--primary)"/>
+              <path d="M96 92h6a12 12 0 0 1 0 24h-6" fill="none" stroke="var(--primary)" stroke-width="9" stroke-linecap="round"/>
+              <path d="M40 18c26 0 30 14 30 30v34" fill="none" stroke="var(--primary-600)" stroke-width="9" stroke-linecap="round"/>
+              <circle cx="70" cy="70" r="7" fill="var(--accent)"/>
+            </svg>
+          </div>
+        </div>
+        <h3>B · Pour</h3>
+        <p class="note">One confident stream falling into the cup, with the honey dot as the point of contact. Warmest of the three, but the paper ground makes it recede on a busy home screen.</p>
+        <p class="verdict hold">Hold: ground too quiet</p>
+      </div>
+
+      <!-- C · Ledger -->
+      <div class="concept" data-od-id="app-icon-ledger">
+        <div class="set">
+          <div class="frame">
+            <svg viewBox="0 0 132 132" width="132" height="132" role="img" aria-label="Ledger concept: lowercase b whose bowl is a coffee bean, on espresso ink">
+              <rect width="132" height="132" fill="var(--fg)"/>
+              <g stroke="var(--bg)" stroke-width="4" opacity="0.28" stroke-linecap="round">
+                <path d="M22 112h88"/><path d="M22 112v-6"/><path d="M44 112v-6"/><path d="M66 112v-6"/><path d="M110 112v-6"/>
+              </g>
+              <path d="M88 106v-8" stroke="var(--accent)" stroke-width="5" stroke-linecap="round"/>
+              <path d="M42 22v60" fill="none" stroke="var(--bg)" stroke-width="9" stroke-linecap="round"/>
+              <circle cx="70" cy="62" r="28" fill="none" stroke="var(--bg)" stroke-width="9"/>
+              <path d="M58 76c10-4 15-13 14-24" fill="none" stroke="var(--accent)" stroke-width="6" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="frame small">
+            <svg viewBox="0 0 132 132" width="60" height="60" aria-hidden="true">
+              <rect width="132" height="132" fill="var(--fg)"/>
+              <path d="M42 22v60" fill="none" stroke="var(--bg)" stroke-width="12" stroke-linecap="round"/>
+              <circle cx="70" cy="62" r="28" fill="none" stroke="var(--bg)" stroke-width="12"/>
+              <path d="M58 76c10-4 15-13 14-24" fill="none" stroke="var(--accent)" stroke-width="8" stroke-linecap="round"/>
+            </svg>
+          </div>
+        </div>
+        <h3>C · Ledger</h3>
+        <p class="note">A lowercase <span class="mono">b</span> whose bowl is a bean, standing on the tick baseline of a cupping form. The most ownable, but the seam is the first thing to disappear when scaled down.</p>
+        <p class="verdict hold">Hold: seam fragile at 60 px</p>
+      </div>
+
+      <!-- D · Dripper (mascot) -->
+      <div class="concept" data-od-id="app-icon-dripper">
+        <div class="set">
+          <div class="frame">
+            <svg viewBox="0 0 132 132" width="132" height="132" role="img" aria-label="Dripper concept: the Brewlog mascot in paper strokes on deep roast, with a honey drip">
+              <rect width="132" height="132" fill="var(--primary-600)"/>
+              <g fill="none" stroke="var(--bg)" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"
+                 transform="translate(66 66) scale(3.5) translate(-16 -16.8)">
+                <path d="M3.6 7.2H28.4"/>
+                <path d="M4.8 7.2 13.2 21H18.8L27.2 7.2"/>
+                <path d="M13.2 21 11.8 26.4"/><path d="M18.8 21 20.2 26.4"/>
+                <path d="M13 11.4V13.6"/><path d="M19 11.4V13.6"/>
+                <path d="M14.3 17H17.7"/>
+              </g>
+              <g fill="none" stroke="var(--accent)" stroke-width="2.3" stroke-linecap="round"
+                 transform="translate(66 66) scale(3.5) translate(-16 -16.8)">
+                <path d="M16 23.8V25.6"/>
+              </g>
+            </svg>
+          </div>
+          <div class="frame small">
+            <svg viewBox="0 0 132 132" width="60" height="60" aria-hidden="true">
+              <rect width="132" height="132" fill="var(--primary-600)"/>
+              <g fill="none" stroke="var(--bg)" stroke-width="2.9" stroke-linecap="round" stroke-linejoin="round"
+                 transform="translate(66 66) scale(3.5) translate(-16 -16.8)">
+                <path d="M3.6 7.2H28.4"/>
+                <path d="M4.8 7.2 13.2 21H18.8L27.2 7.2"/>
+                <path d="M13.2 21 11.8 26.4"/><path d="M18.8 21 20.2 26.4"/>
+                <path d="M13 11.4V13.6"/><path d="M19 11.4V13.6"/>
+              </g>
+            </svg>
+          </div>
+        </div>
+        <h3>D · Dripper</h3>
+        <p class="note">The mascot mark itself, in paper strokes on deep roast, with the honey drip as the only accent. At 60 px it falls back to the reduced mark: mouth and drip dropped: and the silhouette still reads as a dripper rather than a face, which is the point.</p>
+        <p class="verdict lead">Lead candidate: carries v1.1</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="rule" aria-hidden="true"></div>
+
+  <!-- ===== 7 · SIGNATURE ELEMENTS ===== -->
+  <section id="signature" data-od-id="section-signature">
+    <div class="sec-head"><span class="num">07</span><h2>Signature elements</h2></div>
+    <p class="sec-sub note">Four motifs do the identifying work. Each has one place it belongs and one place it must never appear: that restriction is what keeps them recognisable.</p>
+
+    <div class="sig">
+      <div class="card item" data-od-id="sig-spec-line">
+        <p class="label">Motif 01</p>
+        <h3 style="margin-top:var(--s2)">The spec line</h3>
+        <dl>
+          <dt>What</dt><dd>Every brew's parameters on one mono, tabular line, separated by middots: method, dose, water, ratio, time.</dd>
+          <dt class="ok">Allowed</dt><dd>Brew cards, list rows, the log header, share sheets.</dd>
+          <dt class="no">Forbidden</dt><dd>Inside prose sentences, and in any display-serif headline.</dd>
+        </dl>
+        <div class="demo">
+          <p class="specline">V60-02 · 15.0 <span class="u">g</span> · 250 <span class="u">ml</span> · 1:16.7 · 2:45</p>
+        </div>
+      </div>
+
+      <div class="card item" data-od-id="sig-extraction-bar">
+        <p class="label">Motif 02</p>
+        <h3 style="margin-top:var(--s2)">The extraction bar</h3>
+        <dl>
+          <dt>What</dt><dd>A 6 px track: roast fill for elapsed brew time, one 2 px honey marker at the target drawdown.</dd>
+          <dt class="ok">Allowed</dt><dd>Once per brew card; full-width on the live timer screen.</dd>
+          <dt class="no">Forbidden</dt><dd>As a decorative divider, a progress bar for loading, or in navigation.</dd>
+        </dl>
+        <div class="demo extract">
+          <div class="track"><span class="fill"></span><span class="mark"></span></div>
+          <div class="legend"><span>first drip 0:38</span><span>target 2:30</span><span>drawdown 2:45</span></div>
+        </div>
+      </div>
+
+      <div class="card item" data-od-id="sig-notched-card">
+        <p class="label">Motif 03</p>
+        <h3 style="margin-top:var(--s2)">The notched record</h3>
+        <dl>
+          <dt>What</dt><dd>A 14 px clipped top-right corner, like a punched card pulled from a cupping form.</dd>
+          <dt class="ok">Allowed</dt><dd>Brew records and saved recipes only: things that are an entry.</dd>
+          <dt class="no">Forbidden</dt><dd>Dialogs, sheets, buttons, settings rows, onboarding panels.</dd>
+        </dl>
+        <div class="demo" style="border-top:none;padding-top:0">
+          <div class="brewcard" style="margin-top:var(--s2)" data-od-id="brew-card-demo">
+            <div class="top">
+              <div>
+                <p class="origin">Guji · washed heirloom</p>
+                <h3 style="margin-top:var(--s1)">Ethiopia Yirgacheffe</h3>
+              </div>
+              <div class="stars" data-od-id="brew-card-rating">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path class="star-on" d="M12 3.2l2.7 5.7 6.2.8-4.5 4.3 1.1 6.1-5.5-3-5.5 3 1.1-6.1L3.1 9.7l6.2-.8z"/></svg>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path class="star-on" d="M12 3.2l2.7 5.7 6.2.8-4.5 4.3 1.1 6.1-5.5-3-5.5 3 1.1-6.1L3.1 9.7l6.2-.8z"/></svg>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path class="star-on" d="M12 3.2l2.7 5.7 6.2.8-4.5 4.3 1.1 6.1-5.5-3-5.5 3 1.1-6.1L3.1 9.7l6.2-.8z"/></svg>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path class="star-on" d="M12 3.2l2.7 5.7 6.2.8-4.5 4.3 1.1 6.1-5.5-3-5.5 3 1.1-6.1L3.1 9.7l6.2-.8z"/></svg>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path class="star-off" d="M12 3.2l2.7 5.7 6.2.8-4.5 4.3 1.1 6.1-5.5-3-5.5 3 1.1-6.1L3.1 9.7l6.2-.8z"/></svg>
+                <span class="count">4 / 5</span>
+              </div>
+            </div>
+            <p class="specline" style="margin-top:var(--s3)">V60-02 · 15.0 <span class="u">g</span> · 250 <span class="u">ml</span> · 94 <span class="u">°C</span> · 22 <span class="u">clicks</span></p>
+            <p class="sp-small" style="margin-top:var(--s2)">Jasmine, bergamot, blueberry. Sweeter than Sunday's: 20 s faster drawdown.</p>
+            <div class="extract" style="margin-top:var(--s3)">
+              <div class="track"><span class="fill"></span><span class="mark"></span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card item" data-od-id="sig-tick-baseline">
+        <p class="label">Motif 04</p>
+        <h3 style="margin-top:var(--s2)">The tick baseline</h3>
+        <dl>
+          <dt>What</dt><dd>Chaff hairlines carrying a 5-tick scale, borrowed from a kitchen scale's faceplate; the current value gets the one honey tick.</dd>
+          <dt class="ok">Allowed</dt><dd>Section separators, grind and dose steppers, the stats axis.</dd>
+          <dt class="no">Forbidden</dt><dd>As a card outline, and never two honey ticks in one view.</dd>
+        </dl>
+        <div class="demo">
+          <div class="tick-scale" aria-hidden="true">
+            <i class="tall"></i><i></i><i></i><i></i><i class="tall"></i><i></i><i></i><i class="hot"></i><i></i><i></i><i class="tall"></i><i></i><i></i><i></i><i class="tall"></i>
+          </div>
+          <p class="sp-small" style="margin-top:var(--s2)">Grind: 22 clicks · range 18–26 for this filter recipe</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="states" style="margin-top:var(--s4)" data-od-id="state-spec">
+      <div class="card" style="padding:var(--s4)">
+        <table class="statetable">
+          <caption>Primary control: state pairs (foreground / background)</caption>
+          <tbody>
+            <tr><th scope="row">Default</th><td>--surface on --primary · 9.1:1</td></tr>
+            <tr><th scope="row">Hover</th><td>--surface on --primary-600 · 12.6:1</td></tr>
+            <tr><th scope="row">Pressed</th><td>--surface on --primary-600 · 12.6:1 + 1 px --fg edge</td></tr>
+            <tr><th scope="row">Focus</th><td>2 px --primary-600 ring, 3 px offset</td></tr>
+            <tr><th scope="row">Disabled</th><td>--muted on --border · the only state allowed to drop contrast</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="try">
+        <p class="label">Live specimen</p>
+        <button class="btn" type="button" data-od-id="save-brew-button">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><g class="strokes"><path d="M4.6 8.8h11.2v4.6a5.6 5.6 0 0 1-5.6 5.6h0a5.6 5.6 0 0 1-5.6-5.6V8.8Z"/><path d="M15.8 10.4h1.9a2.3 2.3 0 0 1 0 4.6h-1.9"/></g></svg>
+          Save brew
+        </button>
+        <p class="note">Hover and press it: the background darkens on the L channel and the label stays --surface. The foreground never moves toward the background.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="rule" aria-hidden="true"></div>
+
+  <!-- ===== 8 · PRINCIPLES ===== -->
+  <section id="principles" data-od-id="section-principles">
+    <div class="sec-head"><span class="num">08</span><h2>Principles &amp; anti-patterns</h2></div>
+    <p class="sec-sub note">The dominance ratio, read left to right, is the fastest way to check a screen before it ships.</p>
+
+    <div class="ratio-bar" data-od-id="dominance-ratio" role="img" aria-label="Dominance ratio: 60 percent paper and white surfaces, 30 percent ink and roast, 10 percent honey accent">
+      <div class="rb-60"></div>
+      <div class="rb-30"></div>
+      <div class="rb-10"></div>
+    </div>
+    <ul class="ratio-legend" data-od-id="dominance-legend">
+      <li><i style="background:var(--bg)"></i><span>60&nbsp;%</span><span class="k">paper + white surfaces</span></li>
+      <li><i style="background:var(--primary)"></i><span>30&nbsp;%</span><span class="k">ink + roast structure</span></li>
+      <li><i style="background:var(--accent)"></i><span>10&nbsp;%</span><span class="k">honey: in practice ≈ 3&nbsp;%</span></li>
+    </ul>
+
+    <div class="principles" data-od-id="principles-list">
+      <div class="pr"><span class="n">01</span><p><b>60 / 30 / 10, measured in area, not intent.</b> If a screen reads as brown, the roast band has crept past 30 %: pull it back to structure and type.</p></div>
+      <div class="pr"><span class="n">02</span><p><b>Honey is reserved for three things:</b> a rating fill, the extraction marker, and the running timer. One honey element per screen; if a second appears, one of them is wrong.</p></div>
+      <div class="pr"><span class="n">03</span><p><b>Honey never becomes text.</b> At 2.7:1 on white it fails as a foreground: links and brand text use --primary-600 at 12.6:1 instead.</p></div>
+      <div class="pr"><span class="n">04</span><p><b>Numbers belong to the mono, words to the sans, feeling to the serif.</b> A dose set in the body sans is a bug, not a style choice.</p></div>
+      <div class="pr"><span class="n">05</span><p><b>Copy is precise and second-person, numbers first.</b> "Grind two clicks finer: your last three Yirgacheffes ran 30 s fast," not "Perfect your brew!" No exclamation marks, no coffee puns.</p></div>
+      <div class="pr"><span class="n">06</span><p><b>Calm means restraint in motion too.</b> One 180 ms ease for state changes, no bounce, no parallax; the only thing allowed to animate continuously is the brew timer.</p></div>
+    </div>
+
+    <div class="never" data-od-id="never-list">
+      <h3>Never</h3>
+      <ul>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><g class="strokes"><path d="M5 5l14 14"/><path d="M19 5L5 19"/></g></svg><span>Brown-on-brown: roast surfaces carrying roast text, or a full-bleed brown wash.</span></li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><g class="strokes"><path d="M5 5l14 14"/><path d="M19 5L5 19"/></g></svg><span>Gradients, glass blur, or drop shadows heavier than a 1 px hairline plus a soft y-offset.</span></li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><g class="strokes"><path d="M5 5l14 14"/><path d="M19 5L5 19"/></g></svg><span>Emoji or text glyphs as graphics: every star, arrow and mark is an inline SVG.</span></li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><g class="strokes"><path d="M5 5l14 14"/><path d="M19 5L5 19"/></g></svg><span>Latte-art hero photography, hand-drawn scenes, or a hand-drawn, photographic or emoji-style mascot. The mascot is geometric and stroke-consistent with the icon system, and it obeys the behaviour rules in 05: calm by default, expressive only on events, never looping.</span></li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><g class="strokes"><path d="M5 5l14 14"/><path d="M19 5L5 19"/></g></svg><span>A dark theme, an alternate palette, or any colour that is not one of the ten tokens.</span></li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><g class="strokes"><path d="M5 5l14 14"/><path d="M19 5L5 19"/></g></svg><span>Placeholder coffee: no lorem ipsum, no invented cupping scores, no fake origins.</span></li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><g class="strokes"><path d="M5 5l14 14"/><path d="M19 5L5 19"/></g></svg><span>Reading copy below 15 px, or a tap target under 44 px.</span></li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><g class="strokes"><path d="M5 5l14 14"/><path d="M19 5L5 19"/></g></svg><span>Two primary buttons for the same action in one viewport.</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <footer data-od-id="board-footer">
+    <span>Brewlog · art direction v1.1 · light theme only · geometric mascot, event-driven only</span>
+    <span>System fonts only · no external assets · renders offline</span>
+  </footer>
+</div>
+<script>
+(function(){
+  var btn = document.querySelector('[data-od-id="mascot-burst-trigger"]');
+  var art = document.querySelector('[data-od-id="mascot-burst-target"]');
+  if (!btn || !art) return;
+  btn.addEventListener('click', function(){
+    art.classList.remove('burst');
+    void art.getBoundingClientRect();   /* restart the two iterations */
+    art.classList.add('burst');
+  });
+  art.addEventListener('animationend', function(){
+    art.classList.remove('burst');      /* never left running */
+  });
+})();
+</script>
+</body>
+</html>

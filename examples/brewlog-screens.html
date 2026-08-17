@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="en">
+<!-- impeccable-disable numbered-section-markers: ordered screen captions are stable review and handoff indices. -->
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Brewlog: iOS screens</title>
+<style>
+/* ============================================================
+   BREWLOG: GLOBAL TOKENS
+   Copied verbatim from brewlog-brand.html. Single source of
+   truth: every colour on this page resolves to one of these.
+   ============================================================ */
+:root{
+  /* ---- colour ---- */
+  --primary:      #6B3C2A;  /* Roast         : structure, headers, primary control */
+  --primary-600:  #4E2A1D;  /* Deep Roast    : hover / pressed / body-safe brand text */
+  --accent:       #D18F2C;  /* Honey         : ratings, extraction marker, timer active */
+  --bg:           #F6F3EE;  /* Kraft Paper   : app canvas */
+  --fg:           #1E1815;  /* Espresso Ink  : all primary text */
+  --muted:        #6B6058;  /* Cupping Note  : secondary text, units, timestamps */
+  --surface:      #FFFFFF;  /* Filter White  : cards, sheets, brew records */
+  --border:       #E2DACE;  /* Chaff         : hairlines, dividers, card edges */
+  --danger:       #9E2B1E;  /* Over-extracted: destructive, out-of-range values */
+  --success:      #3E6B3A;  /* Coffee Leaf   : in-range, saved, dialled in */
+
+  /* ---- radius ---- */
+  --r-sm: 4px;
+  --r-md: 10px;
+  --r-lg: 20px;
+
+  /* ---- spacing (8px baseline, 4px half-step) ---- */
+  --s1: 4px;
+  --s2: 8px;
+  --s3: 16px;
+  --s4: 24px;
+  --s5: 40px;
+
+  /* ---- type stacks (system only: renders offline) ---- */
+  --font-display: "Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
+  --font-body: -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,"Helvetica Neue",sans-serif;
+  --font-mono: ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,monospace;
+
+  /* ---- derived (token-only) ---- */
+  --tint-primary: color-mix(in srgb, var(--primary) 7%, var(--surface));
+  --tint-accent:  color-mix(in srgb, var(--accent) 16%, var(--surface));
+  --track:        color-mix(in srgb, var(--fg) 9%, var(--surface));
+  --shadow-1:     0 1px 2px color-mix(in srgb, var(--fg) 9%, transparent);
+  --shadow-2:     0 2px 10px color-mix(in srgb, var(--fg) 7%, transparent);
+
+  /* ---- device chrome (derived from tokens only) ---- */
+  --bezel-ring: color-mix(in srgb, var(--bg) 20%, var(--fg));
+  --bezel-btn:  color-mix(in srgb, var(--bg) 14%, var(--fg));
+  --indicator:  color-mix(in srgb, var(--fg) 32%, var(--bg));
+  --hairline-2: color-mix(in srgb, var(--fg) 18%, var(--surface));
+}
+
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;max-width:100%}
+body{
+  background:var(--bg);
+  color:var(--fg);
+  font:400 17px/1.6 var(--font-body);
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+p{margin:0}
+h1,h2,h3,h4{font-family:var(--font-display);font-weight:600;margin:0}
+.mono{font-family:var(--font-mono);font-variant-numeric:tabular-nums;letter-spacing:0}
+.strokes{fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
+button:focus-visible,a:focus-visible{outline:2px solid var(--primary-600);outline-offset:3px;border-radius:var(--r-sm)}
+
+/* ---------- mascot (board v1.1) ----------
+   .mstroke / .mstroke-hot copied verbatim from brewlog-brand.html.
+   32 × 32 keyline, stroke 2.3, no fill, currentColor. The honey drip
+   (.mstroke-hot) is licensed on the running timer only.
+   ---------------------------------------------------------------- */
+.mstroke{fill:none;stroke:currentColor;stroke-width:2.3;stroke-linecap:round;stroke-linejoin:round}
+.mstroke-hot{fill:none;stroke:var(--accent);stroke-width:2.3;stroke-linecap:round;stroke-linejoin:round}
+.mascot{display:block;flex:none}
+.mascot--header{width:36px;height:36px;color:var(--fg)}
+.mascot--timer{width:46px;height:46px;color:var(--fg)}
+.mascot--empty{width:72px;height:72px;color:var(--primary-600);margin:0 auto}
+
+/* ============================================================
+   BOARD (documentation surround: not part of the app)
+   ============================================================ */
+.board{padding:var(--s5) var(--s4) var(--s4)}
+.masthead{max-width:1180px;margin:0 auto var(--s5)}
+.label{
+  font-family:var(--font-mono);font-size:14px;line-height:1.2;
+  text-transform:uppercase;letter-spacing:.14em;color:var(--primary-600);
+}
+.masthead h1{font-size:44px;line-height:1;letter-spacing:-.015em;margin-top:var(--s2)}
+.masthead .note{font-size:17px;line-height:1.6;color:var(--muted);max-width:64ch;margin-top:var(--s3)}
+.legend{display:flex;flex-wrap:wrap;gap:var(--s2) var(--s4);margin:var(--s4) 0 0;padding:0}
+.legend li{list-style:none;display:flex;align-items:center;gap:var(--s2);font-family:var(--font-mono);font-size:14px;color:var(--fg)}
+.legend i{width:12px;height:12px;border-radius:3px;flex:none;border:1px solid var(--border)}
+
+.rail{display:flex;gap:var(--s5);align-items:flex-start;overflow-x:auto;padding:0 0 var(--s4)}
+.slot{flex:none;width:390px}
+.cap{min-height:104px;padding:0 var(--s1) var(--s4)}
+.cap .n{font-family:var(--font-mono);font-size:14px;letter-spacing:.16em;color:var(--primary)}
+.cap h2{font-size:26px;line-height:1.2;letter-spacing:-.01em;margin-top:var(--s1)}
+.cap p{font-size:15px;line-height:1.5;color:var(--muted);margin-top:var(--s2)}
+.cap .kind{font-family:var(--font-mono);font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-left:var(--s2)}
+
+/* ============================================================
+   iPHONE FRAME: 390 × 844, 11 px bezel, 368 × 822 viewport
+   ============================================================ */
+.phone{
+  position:relative;
+  width:390px;height:844px;
+  padding:11px;
+  border-radius:54px;
+  background:var(--fg);
+  box-shadow:inset 0 0 0 1px var(--bezel-ring), var(--shadow-2);
+}
+.side{position:absolute;background:var(--bezel-btn);border-radius:2px;width:3px}
+.side.mute{left:-2px;top:150px;height:32px}
+.side.vol-up{left:-2px;top:214px;height:62px}
+.side.vol-dn{left:-2px;top:288px;height:62px}
+.side.power{right:-2px;top:242px;height:100px}
+
+.vp{
+  position:relative;
+  width:368px;height:822px;
+  border-radius:43px;
+  overflow:hidden;
+  background:var(--bg);
+}
+.di{
+  position:absolute;left:50%;top:11px;transform:translateX(-50%);
+  width:118px;height:34px;border-radius:17px;background:var(--fg);z-index:4;
+}
+.home{
+  position:absolute;left:50%;bottom:8px;transform:translateX(-50%);
+  width:134px;height:5px;border-radius:3px;background:var(--indicator);z-index:3;
+}
+
+/* ---------- status bar (54 high) ---------- */
+.sb{
+  position:absolute;left:0;right:0;top:0;height:54px;z-index:2;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:6px 26px 0;color:var(--fg);
+}
+.sb .clock{font-family:var(--font-mono);font-variant-numeric:tabular-nums;font-size:15px;font-weight:600;letter-spacing:.01em}
+.sb .sys{display:flex;align-items:center;gap:6px}
+.sb .sys svg{display:block}
+
+/* ---------- content area ---------- */
+.screen{
+  position:absolute;left:0;right:0;top:54px;bottom:0;
+  display:flex;flex-direction:column;overflow:hidden;
+}
+.screen--root{bottom:84px}
+.pad{padding:0 20px}
+
+/* ---------- tab bar (84 high, 24 bottom padding) ---------- */
+.tabbar{
+  position:absolute;left:0;right:0;bottom:0;height:84px;z-index:2;
+  display:flex;padding:0 0 24px;
+  background:var(--surface);border-top:1px solid var(--border);
+}
+.tab{
+  flex:1;min-height:44px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;
+  background:none;border:0;cursor:pointer;color:var(--muted);
+  font-family:var(--font-mono);font-size:13px;letter-spacing:.08em;text-transform:uppercase;
+}
+.tab svg{width:26px;height:26px;display:block}
+/* the mascot draws on the 32 grid and fills less of its box than the 24-grid
+   icons, so its box is scaled up to keep the row optically even */
+.tab svg[viewBox="0 0 32 32"]{width:30px;height:30px}
+.tab[aria-current="page"]{color:var(--primary)}
+.tab:hover{color:var(--primary-600)}
+
+/* ---------- navigation bar (pushed screens, 52 high) ---------- */
+.navbar{
+  flex:none;height:52px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 12px 0 8px;border-bottom:1px solid var(--border);background:var(--bg);
+}
+.back{
+  min-height:44px;min-width:44px;padding:0 var(--s2) 0 var(--s1);
+  display:inline-flex;align-items:center;gap:2px;
+  background:none;border:0;cursor:pointer;color:var(--primary-600);
+  font:400 17px/1 var(--font-body);border-radius:var(--r-sm);
+}
+.back:hover{background:var(--tint-primary)}
+.back svg{width:22px;height:22px}
+.navbar .nav-title{font-family:var(--font-display);font-size:19px;line-height:1.2}
+.navbar .nav-right{min-width:44px;display:flex;justify-content:flex-end}
+.nav-meta{font-family:var(--font-mono);font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+
+/* ---------- shared app type roles ---------- */
+.eyebrow{font-family:var(--font-mono);font-size:13px;line-height:1.2;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.lgtitle{font-family:var(--font-display);font-size:34px;line-height:1.1;letter-spacing:-.02em;margin-top:var(--s1)}
+.grouplabel{font-family:var(--font-mono);font-size:14px;line-height:1.2;letter-spacing:.14em;text-transform:uppercase;color:var(--primary-600)}
+.body15{font-size:15px;line-height:1.5}
+.muted15{font-size:15px;line-height:1.5;color:var(--muted)}
+.specline{font-family:var(--font-mono);font-size:15px;line-height:1.5;font-variant-numeric:tabular-nums;color:var(--fg);display:flex;flex-wrap:wrap;column-gap:6px}
+.specline .u{color:var(--muted)}
+.specline .sep{color:var(--muted)}
+.specline--sm{font-size:14px}
+
+/* ---------- motif 01/02: extraction bar ---------- */
+.extract .track{position:relative;height:6px;border-radius:var(--r-sm);background:var(--track);overflow:hidden}
+.extract .fill{position:absolute;left:0;top:0;bottom:0;background:var(--primary);border-radius:var(--r-sm)}
+.extract .legend{display:flex;justify-content:space-between;gap:var(--s2);margin-top:var(--s2);font-family:var(--font-mono);font-size:13px;font-variant-numeric:tabular-nums;color:var(--muted)}
+.extract--lg{position:relative;padding-top:5px}
+.extract--lg .track{height:10px;border-radius:5px;overflow:visible}
+.extract--lg .fill{border-radius:5px}
+.extract--lg .mark{position:absolute;top:0;width:3px;height:20px;background:var(--accent);border-radius:2px}
+
+/* ---------- motif 03: notched brew record ---------- */
+.brewcard{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);
+  padding:var(--s3);box-shadow:var(--shadow-1);
+  clip-path:polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 0 100%);
+}
+.brewcard h3{font-size:22px;line-height:1.2;margin-top:var(--s1)}
+.brewcard--compact{padding:12px var(--s3)}
+.brewcard--compact h3{font-size:19px;line-height:1.25}
+.recordtop{display:flex;align-items:flex-start;justify-content:space-between;gap:var(--s2)}
+.ratingval{font-family:var(--font-mono);font-size:16px;font-variant-numeric:tabular-nums;color:var(--fg);flex:none;padding-top:2px}
+.ratingval .u{color:var(--muted);font-size:13px}
+
+/* stars: honey fills only, inline SVG (never a text glyph) */
+.stars{display:flex;gap:3px;align-items:center}
+.stars svg{width:17px;height:17px;display:block}
+.star-on{fill:var(--accent)}
+.star-off{fill:none;stroke:color-mix(in srgb, var(--fg) 30%, var(--surface));stroke-width:1.75}
+.stars .count{font-family:var(--font-mono);font-size:14px;font-variant-numeric:tabular-nums;color:var(--muted);margin-left:var(--s1)}
+
+/* ---------- motif 04: tick baseline ---------- */
+.tick-scale{display:flex;justify-content:space-between;align-items:flex-end;height:22px;width:100%}
+.tick-scale i{width:2px;flex:none;background:var(--border);border-radius:1px;height:10px}
+.tick-scale i.tall{height:18px;background:color-mix(in srgb, var(--fg) 45%, var(--surface))}
+.tick-scale i.hot{background:var(--accent);height:22px;width:3px}
+.tick-axis{display:flex;justify-content:space-between;margin-top:6px;font-family:var(--font-mono);font-size:13px;font-variant-numeric:tabular-nums;color:var(--muted)}
+
+/* ---------- controls ---------- */
+.btn{
+  font:400 17px/1 var(--font-body);
+  min-height:52px;padding:0 var(--s4);
+  background:var(--primary);color:var(--surface);
+  border:1px solid var(--primary);border-radius:var(--r-md);
+  cursor:pointer;box-shadow:var(--shadow-1);
+  display:inline-flex;align-items:center;justify-content:center;gap:var(--s2);
+}
+.btn:hover{background:var(--primary-600);border-color:var(--primary-600);color:var(--surface)}
+.btn:active{background:var(--primary-600);border-color:var(--fg);box-shadow:none;transform:translateY(1px)}
+.btn svg{width:20px;height:20px}
+.btn--block{width:100%}
+.btn--ghost{background:var(--surface);color:var(--primary-600);border-color:var(--border);box-shadow:none}
+.btn--ghost:hover{background:var(--tint-primary);color:var(--primary-600);border-color:var(--primary-600)}
+.btn--ghost:active{background:var(--tint-primary);color:var(--primary-600);border-color:var(--fg);transform:translateY(1px)}
+.dock{position:absolute;left:20px;right:20px;bottom:12px}
+.dock--pushed{bottom:24px}
+
+/* form */
+.field{display:block}
+.field .flabel{font-family:var(--font-mono);font-size:14px;line-height:1.2;letter-spacing:.12em;text-transform:uppercase;color:var(--primary-600)}
+.control{
+  margin-top:6px;min-height:46px;width:100%;
+  display:flex;align-items:center;gap:var(--s2);
+  padding:0 14px;background:var(--surface);
+  border:1px solid var(--border);border-radius:var(--r-md);
+  font:400 17px/1.3 var(--font-body);color:var(--fg);
+}
+.control .val{font-family:var(--font-mono);font-size:17px;font-variant-numeric:tabular-nums}
+.control .u{color:var(--muted);font-family:var(--font-mono);font-size:15px}
+.control .grow{flex:1;min-width:0}
+.control--serif{font-family:var(--font-display);font-size:19px}
+.control--ro{background:var(--track);border-color:var(--border);color:var(--muted)}
+.control:focus-within{border-color:var(--primary-600);box-shadow:0 0 0 3px var(--tint-primary)}
+.twoup{display:flex;gap:12px}
+.twoup>*{flex:1;min-width:0}
+
+.seg{
+  margin-top:6px;display:flex;gap:3px;padding:3px;
+  background:var(--track);border-radius:var(--r-md);
+}
+.seg button{
+  flex:1;min-height:44px;cursor:pointer;
+  font:400 15px/1 var(--font-body);color:var(--muted);
+  background:none;border:1px solid transparent;border-radius:7px;
+}
+.seg button:hover{color:var(--primary-600)}
+.seg button[aria-pressed="true"]{background:var(--surface);border-color:var(--border);color:var(--fg);box-shadow:var(--shadow-1)}
+
+.stepper{margin-top:6px;display:flex;align-items:stretch;gap:0;border:1px solid var(--danger);border-radius:var(--r-md);background:var(--surface);overflow:hidden}
+.stepper button{
+  width:52px;min-height:48px;flex:none;cursor:pointer;
+  background:var(--surface);border:0;color:var(--primary-600);
+  display:flex;align-items:center;justify-content:center;
+}
+.stepper button:hover{background:var(--tint-primary)}
+.stepper button:active{background:var(--track)}
+.stepper button svg{width:20px;height:20px}
+.stepper .readout{
+  flex:1;min-width:0;display:flex;align-items:baseline;justify-content:center;gap:5px;
+  border-left:1px solid var(--border);border-right:1px solid var(--border);
+  font-family:var(--font-mono);font-variant-numeric:tabular-nums;
+}
+.stepper .readout b{font-weight:400;font-size:22px;color:var(--danger)}
+.stepper .readout span{font-size:15px;color:var(--muted)}
+.errline{display:flex;gap:8px;margin-top:var(--s2);color:var(--danger)}
+.errline svg{width:18px;height:18px;flex:none;margin-top:2px}
+.errline p{font-size:15px;line-height:1.45}
+
+/* rows / groups (settings, lists) */
+.group{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);box-shadow:var(--shadow-1);overflow:hidden}
+.row{
+  width:100%;min-height:60px;display:flex;align-items:center;gap:var(--s3);
+  padding:12px var(--s3);background:var(--surface);border:0;border-top:1px solid var(--border);
+  text-align:left;font:400 17px/1.35 var(--font-body);color:var(--fg);
+}
+.row:first-child{border-top:0}
+button.row{cursor:pointer}
+button.row:hover{background:var(--tint-primary)}
+button.row:active{background:var(--track)}
+.row .rmain{flex:1;min-width:0}
+.row .rsub{font-size:15px;line-height:1.4;color:var(--muted);margin-top:2px}
+.row .rval{font-family:var(--font-mono);font-size:15px;font-variant-numeric:tabular-nums;color:var(--muted);flex:none}
+.row .chev{width:20px;height:20px;flex:none;color:var(--muted)}
+
+.toggle{flex:none;width:51px;height:31px;border-radius:16px;position:relative;background:var(--track);border:1px solid var(--border)}
+.toggle::after{content:"";position:absolute;top:2px;left:2px;width:25px;height:25px;border-radius:50%;background:var(--surface);box-shadow:var(--shadow-1)}
+.toggle.on{background:var(--primary);border-color:var(--primary)}
+.toggle.on::after{left:auto;right:2px}
+
+/* stats */
+.tiles{display:flex;gap:12px}
+.tile{flex:1;min-width:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);box-shadow:var(--shadow-1);padding:12px var(--s3) 14px}
+.tile .k{font-family:var(--font-mono);font-size:13px;line-height:1.2;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.tile .v{font-family:var(--font-mono);font-size:30px;line-height:1.15;font-variant-numeric:tabular-nums;color:var(--fg);margin-top:6px}
+.tile .v em{font-style:normal;font-size:15px;color:var(--muted);margin-left:3px}
+.bar-row{margin-top:var(--s3)}
+.bar-row:first-child{margin-top:0}
+.bar-head{display:flex;align-items:baseline;justify-content:space-between;gap:var(--s2)}
+.bar-head .m{font-size:15px;line-height:1.4}
+.bar-head .s{font-family:var(--font-mono);font-size:15px;font-variant-numeric:tabular-nums;color:var(--fg)}
+.bar-head .s em{font-style:normal;font-size:13px;color:var(--muted)}
+.bar-track{margin-top:6px;height:10px;border-radius:5px;background:var(--track);overflow:hidden}
+.bar-fill{height:100%;background:var(--primary);border-radius:5px}
+.bar-fill.b2{background:var(--primary-600)}
+.bar-fill.b3{background:color-mix(in srgb, var(--primary) 62%, var(--bg))}
+
+/* timer */
+.bigtime{font-family:var(--font-mono);font-size:68px;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-.02em;color:var(--fg)}
+.steprow{display:flex;align-items:center;gap:12px;min-height:38px;border-top:1px solid var(--border)}
+.steprow:first-child{border-top:0}
+.steprow .sn{flex:1;min-width:0;font-size:15px;line-height:1.4}
+.steprow .st{font-family:var(--font-mono);font-size:15px;font-variant-numeric:tabular-nums;color:var(--muted);flex:none}
+.steprow .ic{width:18px;height:18px;flex:none}
+.steprow.done .ic{color:var(--success)}
+.steprow.now .sn{color:var(--primary-600)}
+.steprow.now .ic{color:var(--primary)}
+.steprow.next .sn{color:var(--muted)}
+.steprow.next .ic{color:var(--border)}
+
+/* empty state (first launch) */
+.empty{
+  flex:1;min-height:0;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:var(--s4);text-align:center;padding:0 20px var(--s5);
+}
+.empty .sentence{font-family:var(--font-display);font-size:21px;line-height:1.45;color:var(--fg);max-width:26ch;text-wrap:balance}
+.empty .sub{font-size:15px;line-height:1.5;color:var(--muted);max-width:30ch;margin-top:var(--s2);text-wrap:balance}
+.empty .btn{min-width:232px}
+
+footer{max-width:1180px;margin:var(--s4) auto 0;padding-top:var(--s4);border-top:1px solid var(--border);display:flex;flex-wrap:wrap;gap:var(--s3);justify-content:space-between;font-family:var(--font-mono);font-size:14px;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="board" data-od-id="screens-board">
+
+  <header class="masthead" data-od-id="masthead">
+    <p class="label">Screens · v1.1 · iPhone 390 × 844 · light theme only</p>
+    <h1>Brewlog: six screens</h1>
+    <p class="note">Four root screens behind the tab bar and two pushed screens, all built from the ten brand tokens, the four signature motifs and the v1.1 mascot. Honey appears exactly once per screen, and never as text.</p>
+    <ul class="legend" data-od-id="board-legend">
+      <li><i style="background:var(--bg)"></i><span>canvas</span></li>
+      <li><i style="background:var(--surface)"></i><span>record surface</span></li>
+      <li><i style="background:var(--primary)"></i><span>roast: controls &amp; data fills</span></li>
+      <li><i style="background:var(--accent)"></i><span>honey: 1 per screen</span></li>
+      <li><i style="background:var(--bg);border-color:var(--primary-600)"></i><span>mascot: calm 01·02·05·06, focused 04, resting 02</span></li>
+    </ul>
+  </header>
+
+  <div class="rail" data-od-id="screen-rail">
+
+    <!-- ================================================================
+         01 · JOURNAL (root)
+         ================================================================ -->
+    <div class="slot" data-od-id="slot-journal">
+      <div class="cap">
+        <span class="n">01</span><span class="kind">root</span>
+        <h2>Journal</h2>
+        <p>Today's cups first, each one a punched record you can read in a glance.</p>
+      </div>
+
+      <div class="phone">
+        <span class="side mute"></span><span class="side vol-up"></span><span class="side vol-dn"></span><span class="side power"></span>
+        <div class="vp">
+
+          <div class="sb">
+            <span class="clock">9:41</span>
+            <span class="sys" aria-hidden="true">
+              <svg width="19" height="14" viewBox="0 0 19 14"><g fill="currentColor"><rect x="0" y="9" width="3" height="5" rx="1"/><rect x="5.3" y="6.5" width="3" height="7.5" rx="1"/><rect x="10.6" y="3.6" width="3" height="10.4" rx="1"/><rect x="15.9" y="0.6" width="3" height="13.4" rx="1"/></g></svg>
+              <svg width="17" height="13" viewBox="0 0 17 13"><g fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M1.4 4.3A10.4 10.4 0 0 1 15.6 4.3"/><path d="M4.3 7.6a6.4 6.4 0 0 1 8.4 0"/></g><circle cx="8.5" cy="11" r="1.5" fill="currentColor"/></svg>
+              <svg width="27" height="13" viewBox="0 0 27 13"><rect x="0.8" y="0.8" width="23" height="11.4" rx="3.4" fill="none" stroke="currentColor" stroke-width="1.3" opacity="0.5"/><rect x="2.6" y="2.6" width="17" height="7.8" rx="2" fill="currentColor"/><path d="M25.4 4.6v3.8" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity="0.5"/></svg>
+            </span>
+          </div>
+
+          <div class="screen screen--root">
+            <div class="pad" style="padding-top:6px" data-od-id="journal-header">
+              <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:var(--s3)">
+                <div style="min-width:0">
+                  <p class="eyebrow">Monday · 17 August</p>
+                  <h1 class="lgtitle">Journal</h1>
+                </div>
+                <!-- mascot · calm · ink drip, static, may sit here indefinitely -->
+                <svg class="mascot mascot--header" viewBox="0 0 32 32" data-od-id="mascot-calm-journal-header" role="img" aria-label="Brewlog mascot, calm">
+                  <g class="mstroke">
+                    <path d="M3.6 7.2H28.4"/>
+                    <path d="M4.8 7.2 13.2 21H18.8L27.2 7.2"/>
+                    <path d="M13.2 21 11.8 26.4"/><path d="M18.8 21 20.2 26.4"/>
+                    <path d="M13 11.4V13.6"/><path d="M19 11.4V13.6"/>
+                    <path d="M14.3 17H17.7"/>
+                    <path d="M16 23.8V25.6"/>
+                  </g>
+                </svg>
+              </div>
+            </div>
+
+            <div class="pad" style="margin-top:var(--s3);flex:1;min-width:0;min-height:0;overflow:hidden;padding-bottom:76px">
+              <p class="grouplabel">Today</p>
+
+              <!-- hero record: the one honey element on this screen -->
+              <article class="brewcard" style="margin-top:12px" data-od-id="brew-card-yirgacheffe">
+                <p class="eyebrow">Guji · washed heirloom</p>
+                <h3>Ethiopia Yirgacheffe</h3>
+                <div class="stars" style="margin-top:var(--s2)" data-od-id="brew-card-yirgacheffe-rating" role="img" aria-label="Rated 4 out of 5">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path class="star-on" d="M12 3.2l2.7 5.7 6.2.8-4.5 4.3 1.1 6.1-5.5-3-5.5 3 1.1-6.1L3.1 9.7l6.2-.8z"/></svg>
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path class="star-on" d="M12 3.2l2.7 5.7 6.2.8-4.5 4.3 1.1 6.1-5.5-3-5.5 3 1.1-6.1L3.1 9.7l6.2-.8z"/></svg>
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path class="star-on" d="M12 3.2l2.7 5.7 6.2.8-4.5 4.3 1.1 6.1-5.5-3-5.5 3 1.1-6.1L3.1 9.7l6.2-.8z"/></svg>
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path class="star-on" d="M12 3.2l2.7 5.7 6.2.8-4.5 4.3 1.1 6.1-5.5-3-5.5 3 1.1-6.1L3.1 9.7l6.2-.8z"/></svg>
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path class="star-off" d="M12 3.2l2.7 5.7 6.2.8-4.5 4.3 1.1 6.1-5.5-3-5.5 3 1.1-6.1L3.1 9.7l6.2-.8z"/></svg>
+                  <span class="count">4 / 5</span>
+                </div>
+                <p class="specline" style="margin-top:12px">
+                  <span>V60-02</span><span class="sep">·</span><span>15.0&nbsp;<span class="u">g</span></span><span class="sep">·</span><span>250&nbsp;<span class="u">ml</span></span><span class="sep">·</span><span>1:16.7</span><span class="sep">·</span><span>2:45</span>
+                </p>
+                <p class="muted15" style="margin-top:var(--s2)">Jasmine and bergamot, blueberry as it cools.</p>
+                <div class="extract" style="margin-top:12px">
+                  <div class="track"><span class="fill" style="width:88%"></span></div>
+                  <div class="legend"><span>first drip 0:38</span><span>drawdown 2:45</span></div>
+                </div>
+              </article>
+
+              <!-- compact records: rating as a mono value, so honey stays at one -->
+              <article class="brewcard brewcard--compact" style="margin-top:12px" data-od-id="brew-card-huila">
+                <div class="recordtop">
+                  <div style="min-width:0">
+                    <p class="eyebrow">Huila · pink bourbon</p>
+                    <h3>Colombia Huila</h3>
+                  </div>
+                  <p class="ratingval">3.5<span class="u">&nbsp;/&nbsp;5</span></p>
+                </div>
+                <p class="specline specline--sm" style="margin-top:var(--s2)">
+                  <span>Aeropress</span><span class="sep">·</span><span>14.0&nbsp;<span class="u">g</span></span><span class="sep">·</span><span>1:15.7</span><span class="sep">·</span><span>1:50</span>
+                </p>
+              </article>
+
+              <article class="brewcard brewcard--compact" style="margin-top:12px" data-od-id="brew-card-cerrado">
+                <div class="recordtop">
+                  <div style="min-width:0">
+                    <p class="eyebrow">Cerrado · yellow catuaí</p>
+                    <h3>Brazil Cerrado</h3>
+                  </div>
+                  <p class="ratingval">4.0<span class="u">&nbsp;/&nbsp;5</span></p>
+                </div>
+                <p class="specline specline--sm" style="margin-top:var(--s2)">
+                  <span>Espresso</span><span class="sep">·</span><span>18.0&nbsp;<span class="u">g</span></span><span class="sep">·</span><span>1:2.0</span><span class="sep">·</span><span>0:28</span>
+                </p>
+              </article>
+            </div>
+
+            <div class="dock" data-od-id="journal-cta">
+              <button class="btn btn--block" type="button">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><g class="strokes"><path d="M12 5.5v13"/><path d="M5.5 12h13"/></g></svg>
+                Log a brew
+              </button>
+            </div>
+          </div>
+
+          <nav class="tabbar" aria-label="Sections" data-od-id="tabbar-journal">
+            <button class="tab" type="button" aria-current="page">
+              <svg viewBox="0 0 32 32" aria-hidden="true"><g class="mstroke"><path d="M3.6 7.2H28.4"/><path d="M4.8 7.2 13.2 21H18.8L27.2 7.2"/><path d="M13.2 21 11.8 26.4"/><path d="M18.8 21 20.2 26.4"/><path d="M13 11.4V13.6"/><path d="M19 11.4V13.6"/></g></svg>
+              Journal
+            </button>
+            <button class="tab" type="button">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><g class="strokes"><path d="M4 3.6v16.8h16.4"/><path d="M7.8 17.2v-4.4"/><path d="M11.6 17.2v-8"/><path d="M15.4 17.2v-5.6"/><path d="M19.2 17.2v-9.8"/></g></svg>
+              Stats
+            </button>
+            <button class="tab" type="button">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><g class="strokes"><path d="M3.6 7.4h16.8"/><path d="M3.6 16.6h16.8"/><circle cx="9" cy="7.4" r="2.6"/><circle cx="15.4" cy="16.6" r="2.6"/></g></svg>
+              Settings
+            </button>
+          </nav>
+
+          <span class="home"></span>
+        </div>
+        <span class="di"></span>
+      </div>
+    </div>
+
+    <!-- ================================================================
+         02 · JOURNAL: FIRST LAUNCH (root, empty)
+         ================================================================ -->
+    <div class="slot" data-od-id="slot-journal-empty">
+      <div class="cap">
+        <span class="n">02</span><span class="kind">root · empty</span>
+        <h2>Journal: first launch</h2>
+        <p>Nothing logged yet: the dripper rests, dry, and one action starts the record.</p>
+      </div>
+
+      <div class="phone">
+        <span class="side mute"></span><span class="side vol-up"></span><span class="side vol-dn"></span><span class="side power"></span>
+        <div class="vp">
+
+          <div class="sb">
+            <span class="clock">9:41</span>
+            <span class="sys" aria-hidden="true">
+              <svg width="19" height="14" viewBox="0 0 19 14"><g fill="currentColor"><rect x="0" y="9" width="3" height="5" rx="1"/><rect x="5.3" y="6.5" width="3" height="7.5" rx="1"/><rect x="10.6" y="3.6" width="3" height="10.4" rx="1"/><rect x="15.9" y="0.6" width="3" height="13.4" rx="1"/></g></svg>
+              <svg width="17" height="13" viewBox="0 0 17 13"><g fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M1.4 4.3A10.4 10.4 0 0 1 15.6 4.3"/><path d="M4.3 7.6a6.4 6.4 0 0 1 8.4 0"/></g><circle cx="8.5" cy="11" r="1.5" fill="currentColor"/></svg>
+              <svg width="27" height="13" viewBox="0 0 27 13"><rect x="0.8" y="0.8" width="23" height="11.4" rx="3.4" fill="none" stroke="currentColor" stroke-width="1.3" opacity="0.5"/><rect x="2.6" y="2.6" width="17" height="7.8" rx="2" fill="currentColor"/><path d="M25.4 4.6v3.8" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity="0.5"/></svg>
+            </span>
+          </div>
+
+          <div class="screen screen--root">
+            <!-- header carries no calm mark here: one mascot per screen, and
+                 this screen's mascot is the resting one below -->
+            <div class="pad" style="padding-top:6px" data-od-id="first-launch-header">
+              <p class="eyebrow">Monday · 17 August</p>
+              <h1 class="lgtitle">Journal</h1>
+            </div>
+
+            <div class="empty" data-od-id="first-launch-empty">
+              <!-- mascot · resting · eyes closed, drip removed: used once, above the sentence -->
+              <svg class="mascot mascot--empty" viewBox="0 0 32 32" data-od-id="mascot-resting-empty" role="img" aria-label="Brewlog mascot, resting: the dripper is dry">
+                <g class="mstroke">
+                  <path d="M3.6 7.2H28.4"/>
+                  <path d="M4.8 7.2 13.2 21H18.8L27.2 7.2"/>
+                  <path d="M13.2 21 11.8 26.4"/><path d="M18.8 21 20.2 26.4"/>
+                  <path d="M11.9 13H14.1"/><path d="M17.9 13H20.1"/>
+                  <path d="M14.8 17H17.2"/>
+                </g>
+              </svg>
+
+              <div>
+                <p class="sentence" data-od-id="empty-sentence">Nothing in the log yet.</p>
+                <p class="sub">Dose, water, time and one tasting note: about a minute per cup.</p>
+              </div>
+
+              <button class="btn" type="button" data-od-id="first-launch-cta">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><g class="strokes"><path d="M12 5.5v13"/><path d="M5.5 12h13"/></g></svg>
+                Log your first brew
+              </button>
+            </div>
+          </div>
+
+          <nav class="tabbar" aria-label="Sections" data-od-id="tabbar-first-launch">
+            <button class="tab" type="button" aria-current="page">
+              <svg viewBox="0 0 32 32" aria-hidden="true"><g class="mstroke"><path d="M3.6 7.2H28.4"/><path d="M4.8 7.2 13.2 21H18.8L27.2 7.2"/><path d="M13.2 21 11.8 26.4"/><path d="M18.8 21 20.2 26.4"/><path d="M13 11.4V13.6"/><path d="M19 11.4V13.6"/></g></svg>
+              Journal
+            </button>
+            <button class="tab" type="button">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><g class="strokes"><path d="M4 3.6v16.8h16.4"/><path d="M7.8 17.2v-4.4"/><path d="M11.6 17.2v-8"/><path d="M15.4 17.2v-5.6"/><path d="M19.2 17.2v-9.8"/></g></svg>
+              Stats
+            </button>
+            <button class="tab" type="button">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><g class="strokes"><path d="M3.6 7.4h16.8"/><path d="M3.6 16.6h16.8"/><circle cx="9" cy="7.4" r="2.6"/><circle cx="15.4" cy="16.6" r="2.6"/></g></svg>
+              Settings
+            </button>
+          </nav>
+
+          <span class="home"></span>
+        </div>
+        <span class="di"></span>
+      </div>
+    </div>
+
+    <!-- ================================================================
+         03 · LOG A BREW (pushed)
+         ================================================================ -->
+    <div class="slot" data-od-id="slot-log-brew">
+      <div class="cap">
+        <span class="n">03</span><span class="kind">pushed</span>
+        <h2>Log a brew</h2>
+        <p>Entered mid-pour: dose first, an out-of-range value caught before it is saved.</p>
+      </div>
+
+      <div class="phone">
+        <span class="side mute"></span><span class="side vol-up"></span><span class="side vol-dn"></span><span class="side power"></span>
+        <div class="vp">
+
+          <div class="sb">
+            <span class="clock">9:41</span>
+            <span class="sys" aria-hidden="true">
+              <svg width="19" height="14" viewBox="0 0 19 14"><g fill="currentColor"><rect x="0" y="9" width="3" height="5" rx="1"/><rect x="5.3" y="6.5" width="3" height="7.5" rx="1"/><rect x="10.6" y="3.6" width="3" height="10.4" rx="1"/><rect x="15.9" y="0.6" width="3" height="13.4" rx="1"/></g></svg>
+              <svg width="17" height="13" viewBox="0 0 17 13"><g fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M1.4 4.3A10.4 10.4 0 0 1 15.6 4.3"/><path d="M4.3 7.6a6.4 6.4 0 0 1 8.4 0"/></g><circle cx="8.5" cy="11" r="1.5" fill="currentColor"/></svg>
+              <svg width="27" height="13" viewBox="0 0 27 13"><rect x="0.8" y="0.8" width="23" height="11.4" rx="3.4" fill="none" stroke="currentColor" stroke-width="1.3" opacity="0.5"/><rect x="2.6" y="2.6" width="17" height="7.8" rx="2" fill="currentColor"/><path d="M25.4 4.6v3.8" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity="0.5"/></svg>
+            </span>
+          </div>
+
+          <div class="screen">
+            <div class="navbar" data-od-id="log-navbar">
+              <button class="back" type="button">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path class="strokes" d="M14.6 5.2 8 12l6.6 6.8"/></svg>
+                Journal
+              </button>
+              <p class="nav-title">Log a brew</p>
+              <span class="nav-right"><span class="nav-meta">07:14</span></span>
+            </div>
+
+            <div class="pad" style="padding-top:12px;flex:1;min-height:0;overflow:hidden;padding-bottom:80px">
+
+              <label class="field" data-od-id="field-coffee">
+                <span class="flabel">Coffee</span>
+                <span class="control control--serif"><span class="grow">Ethiopia Yirgacheffe</span></span>
+              </label>
+
+              <div class="field" style="margin-top:var(--s2)" data-od-id="field-method">
+                <span class="flabel">Method</span>
+                <div class="seg" role="group" aria-label="Brew method">
+                  <button type="button" aria-pressed="true">V60</button>
+                  <button type="button" aria-pressed="false">Aeropress</button>
+                  <button type="button" aria-pressed="false">Espresso</button>
+                </div>
+              </div>
+
+              <div class="field" style="margin-top:var(--s2)" data-od-id="field-dose">
+                <span class="flabel">Dose</span>
+                <div class="stepper">
+                  <button type="button" aria-label="Decrease dose">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path class="strokes" d="M5.5 12h13"/></svg>
+                  </button>
+                  <p class="readout"><b>21.0</b><span>g</span></p>
+                  <button type="button" aria-label="Increase dose">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><g class="strokes"><path d="M12 5.5v13"/><path d="M5.5 12h13"/></g></svg>
+                  </button>
+                </div>
+
+                <!-- tick baseline: one honey tick marks the current value -->
+                <div style="margin-top:12px" data-od-id="dose-tick-baseline">
+                  <div class="tick-scale" aria-hidden="true">
+                    <i class="tall"></i><i></i><i></i><i></i>
+                    <i class="tall"></i><i></i><i></i><i></i>
+                    <i class="tall"></i><i></i><i></i><i></i>
+                    <i class="tall"></i><i></i><i></i><i></i>
+                    <i class="tall"></i><i></i><i class="hot"></i><i></i>
+                    <i class="tall"></i>
+                  </div>
+                  <div class="tick-axis"><span>12 g</span><span>17 g</span><span>22 g</span></div>
+                </div>
+
+                <div class="errline" data-od-id="dose-error">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><g class="strokes"><circle cx="12" cy="12" r="8.6"/><path d="M12 7.8v5.4"/><path d="M12 16.4h.01"/></g></svg>
+                  <p>3.0 g over the 14.0–18.0 g range.</p>
+                </div>
+              </div>
+
+              <div class="twoup" style="margin-top:var(--s2)">
+                <label class="field" data-od-id="field-water">
+                  <span class="flabel">Water</span>
+                  <span class="control"><span class="val grow">250</span><span class="u">ml</span></span>
+                </label>
+                <div class="field" data-od-id="field-ratio">
+                  <span class="flabel">Ratio</span>
+                  <span class="control control--ro"><span class="val grow" style="color:var(--danger)">1:11.9</span></span>
+                </div>
+              </div>
+
+              <div class="twoup" style="margin-top:var(--s2)">
+                <label class="field" data-od-id="field-temp">
+                  <span class="flabel">Water temp</span>
+                  <span class="control"><span class="val grow">94</span><span class="u">°C</span></span>
+                </label>
+                <label class="field" data-od-id="field-grind">
+                  <span class="flabel">Grind</span>
+                  <span class="control"><span class="val grow">22</span><span class="u">clicks</span></span>
+                </label>
+              </div>
+
+              <label class="field" style="margin-top:var(--s2);display:block" data-od-id="field-notes">
+                <span class="flabel">Tasting note</span>
+                <span class="control" style="min-height:52px;line-height:1.5">
+                  <span class="grow" style="font-size:15px">Jasmine, bergamot, blueberry.</span>
+                </span>
+              </label>
+            </div>
+
+            <div class="dock dock--pushed" data-od-id="log-cta">
+              <button class="btn btn--block" type="button">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><g class="strokes"><path d="M4.6 8.8h11.2v4.6a5.6 5.6 0 0 1-5.6 5.6h0a5.6 5.6 0 0 1-5.6-5.6V8.8Z"/><path d="M15.8 10.4h1.9a2.3 2.3 0 0 1 0 4.6h-1.9"/></g></svg>
+                Save brew
+              </button>
+            </div>
+          </div>
+
+          <span class="home"></span>
+        </div>
+        <span class="di"></span>
+      </div>
+    </div>
+
+    <!-- ================================================================
+         04 · BREW TIMER (pushed)
+         ================================================================ -->
+    <div class="slot" data-od-id="slot-timer">
+      <div class="cap">
+        <span class="n">04</span><span class="kind">pushed</span>
+        <h2>Brew timer</h2>
+        <p>The ninety seconds the app exists for: elapsed time, the drip gone honey, the next pour.</p>
+      </div>
+
+      <div class="phone">
+        <span class="side mute"></span><span class="side vol-up"></span><span class="side vol-dn"></span><span class="side power"></span>
+        <div class="vp">
+
+          <div class="sb">
+            <span class="clock">9:41</span>
+            <span class="sys" aria-hidden="true">
+              <svg width="19" height="14" viewBox="0 0 19 14"><g fill="currentColor"><rect x="0" y="9" width="3" height="5" rx="1"/><rect x="5.3" y="6.5" width="3" height="7.5" rx="1"/><rect x="10.6" y="3.6" width="3" height="10.4" rx="1"/><rect x="15.9" y="0.6" width="3" height="13.4" rx="1"/></g></svg>
+              <svg width="17" height="13" viewBox="0 0 17 13"><g fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M1.4 4.3A10.4 10.4 0 0 1 15.6 4.3"/><path d="M4.3 7.6a6.4 6.4 0 0 1 8.4 0"/></g><circle cx="8.5" cy="11" r="1.5" fill="currentColor"/></svg>
+              <svg width="27" height="13" viewBox="0 0 27 13"><rect x="0.8" y="0.8" width="23" height="11.4" rx="3.4" fill="none" stroke="currentColor" stroke-width="1.3" opacity="0.5"/><rect x="2.6" y="2.6" width="17" height="7.8" rx="2" fill="currentColor"/><path d="M25.4 4.6v3.8" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity="0.5"/></svg>
+            </span>
+          </div>
+
+          <div class="screen">
+            <div class="navbar" data-od-id="timer-navbar">
+              <button class="back" type="button">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path class="strokes" d="M14.6 5.2 8 12l6.6 6.8"/></svg>
+                Back
+              </button>
+              <p class="nav-title">Brewing</p>
+              <span class="nav-right"><span class="nav-meta">Step 3 / 4</span></span>
+            </div>
+
+            <div class="pad" style="padding-top:18px;flex:1;min-height:0;overflow:hidden;padding-bottom:92px">
+              <p class="eyebrow">Guji · washed heirloom</p>
+              <h1 style="font-size:26px;line-height:1.2;margin-top:var(--s1)">Ethiopia Yirgacheffe</h1>
+              <p class="specline" style="margin-top:var(--s2)">
+                <span>V60-02</span><span class="sep">·</span><span>15.0&nbsp;<span class="u">g</span></span><span class="sep">·</span><span>250&nbsp;<span class="u">ml</span></span><span class="sep">·</span><span>1:16.7</span>
+              </p>
+
+              <div style="margin-top:22px;display:flex;align-items:flex-end;justify-content:space-between;gap:var(--s3)" data-od-id="timer-elapsed">
+                <div style="min-width:0">
+                  <p class="grouplabel">Elapsed</p>
+                  <p class="bigtime" style="margin-top:var(--s2)">1:28</p>
+                </div>
+                <!-- mascot · focused · held for the drawdown only. Its honey drip is
+                     this screen's single licensed honey element (board v1.1). -->
+                <svg class="mascot mascot--timer" viewBox="0 0 32 32" data-od-id="mascot-focused-timer" role="img" aria-label="Brewlog mascot, focused: the timer is running">
+                  <g class="mstroke">
+                    <path d="M3.6 7.2H28.4"/>
+                    <path d="M4.8 7.2 13.2 21H18.8L27.2 7.2"/>
+                    <path d="M13.2 21 11.8 26.4"/><path d="M18.8 21 20.2 26.4"/>
+                    <path d="M12.5 11.9 13.5 13.5"/><path d="M19.5 11.9 18.5 13.5"/>
+                    <path d="M14.9 17H17.1"/>
+                  </g>
+                  <g class="mstroke-hot"><path d="M16 23.8V25.6"/></g>
+                </svg>
+              </div>
+
+              <!-- extraction bar: the target marker steps down to ink: the mascot's
+                   honey drip now carries this screen's one honey element -->
+              <div style="margin-top:22px" data-od-id="timer-extraction">
+                <div class="extract extract--lg">
+                  <div class="track"><span class="fill" style="width:49%"></span></div>
+                  <span class="mark" style="left:calc(83% - 1px);background:var(--fg)"></span>
+                </div>
+                <div class="extract"><div class="legend" style="margin-top:12px"><span>first drip 0:38</span><span>target 2:30</span></div></div>
+              </div>
+
+              <div class="group" style="margin-top:18px;box-shadow:var(--shadow-1)" data-od-id="timer-current-step">
+                <div class="row" style="min-height:0;padding:14px var(--s3);align-items:flex-start">
+                  <div class="rmain">
+                    <p class="eyebrow">Now pouring · ends 1:50</p>
+                    <h3 style="font-size:21px;line-height:1.25;margin-top:var(--s1)">Pour 2: to 250 ml</h3>
+                    <p class="specline specline--sm" style="margin-top:6px">
+                      <span>100&nbsp;<span class="u">ml</span></span><span class="sep">·</span><span>spiral from centre</span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div style="margin-top:16px" data-od-id="timer-steps">
+                <div class="steprow done">
+                  <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path class="strokes" d="M5.4 12.6l4.4 4.2 8.8-9.6"/></svg>
+                  <span class="sn">Bloom: 50 ml</span><span class="st">0:00 – 0:40</span>
+                </div>
+                <div class="steprow done">
+                  <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path class="strokes" d="M5.4 12.6l4.4 4.2 8.8-9.6"/></svg>
+                  <span class="sn">Pour 1: to 150 ml</span><span class="st">0:40 – 1:15</span>
+                </div>
+                <div class="steprow now">
+                  <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><g class="strokes"><circle cx="12" cy="12" r="7.4"/><path d="M12 12V7.6"/><path d="M12 12h3.2"/></g></svg>
+                  <span class="sn">Pour 2: to 250 ml</span><span class="st">1:15 – 1:50</span>
+                </div>
+                <div class="steprow next">
+                  <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle class="strokes" cx="12" cy="12" r="7.4"/></svg>
+                  <span class="sn">Drawdown</span><span class="st">target 2:30</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="dock dock--pushed" style="display:flex;gap:12px" data-od-id="timer-controls">
+              <button class="btn btn--ghost" type="button" style="flex:0 0 118px">Reset</button>
+              <button class="btn" type="button" style="flex:1">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><g class="strokes"><path d="M9.4 5.6v12.8"/><path d="M14.6 5.6v12.8"/></g></svg>
+                Pause
+              </button>
+            </div>
+          </div>
+
+          <span class="home"></span>
+        </div>
+        <span class="di"></span>
+      </div>
+    </div>
+
+    <!-- ================================================================
+         05 · STATS (root)
+         ================================================================ -->
+    <div class="slot" data-od-id="slot-stats">
+      <div class="cap">
+        <span class="n">05</span><span class="kind">root</span>
+        <h2>Stats</h2>
+        <p>What the good days have in common, ranked by method and closed with one best cup.</p>
+      </div>
+
+      <div class="phone">
+        <span class="side mute"></span><span class="side vol-up"></span><span class="side vol-dn"></span><span class="side power"></span>
+        <div class="vp">
+
+          <div class="sb">
+            <span class="clock">9:41</span>
+            <span class="sys" aria-hidden="true">
+              <svg width="19" height="14" viewBox="0 0 19 14"><g fill="currentColor"><rect x="0" y="9" width="3" height="5" rx="1"/><rect x="5.3" y="6.5" width="3" height="7.5" rx="1"/><rect x="10.6" y="3.6" width="3" height="10.4" rx="1"/><rect x="15.9" y="0.6" width="3" height="13.4" rx="1"/></g></svg>
+              <svg width="17" height="13" viewBox="0 0 17 13"><g fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M1.4 4.3A10.4 10.4 0 0 1 15.6 4.3"/><path d="M4.3 7.6a6.4 6.4 0 0 1 8.4 0"/></g><circle cx="8.5" cy="11" r="1.5" fill="currentColor"/></svg>
+              <svg width="27" height="13" viewBox="0 0 27 13"><rect x="0.8" y="0.8" width="23" height="11.4" rx="3.4" fill="none" stroke="currentColor" stroke-width="1.3" opacity="0.5"/><rect x="2.6" y="2.6" width="17" height="7.8" rx="2" fill="currentColor"/><path d="M25.4 4.6v3.8" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity="0.5"/></svg>
+            </span>
+          </div>
+
+          <div class="screen screen--root">
+            <div class="pad" style="padding-top:6px;flex:1;min-height:0;overflow:hidden">
+              <p class="eyebrow">August · 61 brews all-time</p>
+              <h1 class="lgtitle">Stats</h1>
+
+              <div class="tiles" style="margin-top:18px" data-od-id="stats-tiles">
+                <div class="tile">
+                  <p class="k">Brews this month</p>
+                  <p class="v">24</p>
+                </div>
+                <div class="tile">
+                  <p class="k">Average rating</p>
+                  <p class="v">4.1<em>/ 5</em></p>
+                </div>
+              </div>
+
+              <div style="margin-top:18px" data-od-id="stats-by-method">
+                <p class="grouplabel">Average rating by method</p>
+                <div style="margin-top:12px">
+                  <div class="bar-row">
+                    <div class="bar-head"><span class="m">V60-02</span><span class="s">4.4 <em>· 14 brews</em></span></div>
+                    <div class="bar-track"><div class="bar-fill" style="width:88%"></div></div>
+                  </div>
+                  <div class="bar-row">
+                    <div class="bar-head"><span class="m">Aeropress</span><span class="s">3.9 <em>· 6 brews</em></span></div>
+                    <div class="bar-track"><div class="bar-fill b2" style="width:78%"></div></div>
+                  </div>
+                  <div class="bar-row">
+                    <div class="bar-head"><span class="m">Espresso</span><span class="s">3.5 <em>· 4 brews</em></span></div>
+                    <div class="bar-track"><div class="bar-fill b3" style="width:70%"></div></div>
+                  </div>
+                </div>
+                <div style="margin-top:14px">
+                  <div class="tick-scale" style="height:14px" aria-hidden="true">
+                    <i class="tall" style="height:12px"></i><i></i><i></i><i></i>
+                    <i class="tall" style="height:12px"></i><i></i><i></i><i></i>
+                    <i class="tall" style="height:12px"></i><i></i><i></i><i></i>
+                    <i class="tall" style="height:12px"></i><i></i><i></i><i></i>
+                    <i class="tall" style="height:12px"></i>
+                  </div>
+                  <div class="tick-axis"><span>0</span><span>2.5</span><span>5</span></div>
+                </div>
+              </div>
+
+              <div style="margin-top:18px" data-od-id="stats-best-cup">
+                <p class="grouplabel">Best cup this month</p>
+                <article class="brewcard" style="margin-top:12px">
+                  <p class="eyebrow">9 August · Guji, 1 950 m</p>
+                  <h3>Ethiopia Yirgacheffe</h3>
+                  <div class="stars" style="margin-top:var(--s2)" role="img" aria-label="Rated 5 out of 5">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path class="star-on" d="M12 3.2l2.7 5.7 6.2.8-4.5 4.3 1.1 6.1-5.5-3-5.5 3 1.1-6.1L3.1 9.7l6.2-.8z"/></svg>
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path class="star-on" d="M12 3.2l2.7 5.7 6.2.8-4.5 4.3 1.1 6.1-5.5-3-5.5 3 1.1-6.1L3.1 9.7l6.2-.8z"/></svg>
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path class="star-on" d="M12 3.2l2.7 5.7 6.2.8-4.5 4.3 1.1 6.1-5.5-3-5.5 3 1.1-6.1L3.1 9.7l6.2-.8z"/></svg>
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path class="star-on" d="M12 3.2l2.7 5.7 6.2.8-4.5 4.3 1.1 6.1-5.5-3-5.5 3 1.1-6.1L3.1 9.7l6.2-.8z"/></svg>
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path class="star-on" d="M12 3.2l2.7 5.7 6.2.8-4.5 4.3 1.1 6.1-5.5-3-5.5 3 1.1-6.1L3.1 9.7l6.2-.8z"/></svg>
+                    <span class="count">5 / 5</span>
+                  </div>
+                  <p class="specline" style="margin-top:12px">
+                    <span>V60-02</span><span class="sep">·</span><span>15.0&nbsp;<span class="u">g</span></span><span class="sep">·</span><span>1:16.7</span><span class="sep">·</span><span>2:45</span>
+                  </p>
+                  <p class="muted15" style="margin-top:var(--s2)">22 clicks at 94 °C. Your best three all drew down inside 2:50.</p>
+                </article>
+              </div>
+            </div>
+          </div>
+
+          <nav class="tabbar" aria-label="Sections" data-od-id="tabbar-stats">
+            <button class="tab" type="button">
+              <svg viewBox="0 0 32 32" aria-hidden="true"><g class="mstroke"><path d="M3.6 7.2H28.4"/><path d="M4.8 7.2 13.2 21H18.8L27.2 7.2"/><path d="M13.2 21 11.8 26.4"/><path d="M18.8 21 20.2 26.4"/><path d="M13 11.4V13.6"/><path d="M19 11.4V13.6"/></g></svg>
+              Journal
+            </button>
+            <button class="tab" type="button" aria-current="page">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><g class="strokes"><path d="M4 3.6v16.8h16.4"/><path d="M7.8 17.2v-4.4"/><path d="M11.6 17.2v-8"/><path d="M15.4 17.2v-5.6"/><path d="M19.2 17.2v-9.8"/></g></svg>
+              Stats
+            </button>
+            <button class="tab" type="button">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><g class="strokes"><path d="M3.6 7.4h16.8"/><path d="M3.6 16.6h16.8"/><circle cx="9" cy="7.4" r="2.6"/><circle cx="15.4" cy="16.6" r="2.6"/></g></svg>
+              Settings
+            </button>
+          </nav>
+
+          <span class="home"></span>
+        </div>
+        <span class="di"></span>
+      </div>
+    </div>
+
+    <!-- ================================================================
+         06 · SETTINGS (root)
+         ================================================================ -->
+    <div class="slot" data-od-id="slot-settings">
+      <div class="cap">
+        <span class="n">06</span><span class="kind">root</span>
+        <h2>Settings</h2>
+        <p>Grouped rows, roast toggles, no honey: nothing here is a rating or a timer.</p>
+      </div>
+
+      <div class="phone">
+        <span class="side mute"></span><span class="side vol-up"></span><span class="side vol-dn"></span><span class="side power"></span>
+        <div class="vp">
+
+          <div class="sb">
+            <span class="clock">9:41</span>
+            <span class="sys" aria-hidden="true">
+              <svg width="19" height="14" viewBox="0 0 19 14"><g fill="currentColor"><rect x="0" y="9" width="3" height="5" rx="1"/><rect x="5.3" y="6.5" width="3" height="7.5" rx="1"/><rect x="10.6" y="3.6" width="3" height="10.4" rx="1"/><rect x="15.9" y="0.6" width="3" height="13.4" rx="1"/></g></svg>
+              <svg width="17" height="13" viewBox="0 0 17 13"><g fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M1.4 4.3A10.4 10.4 0 0 1 15.6 4.3"/><path d="M4.3 7.6a6.4 6.4 0 0 1 8.4 0"/></g><circle cx="8.5" cy="11" r="1.5" fill="currentColor"/></svg>
+              <svg width="27" height="13" viewBox="0 0 27 13"><rect x="0.8" y="0.8" width="23" height="11.4" rx="3.4" fill="none" stroke="currentColor" stroke-width="1.3" opacity="0.5"/><rect x="2.6" y="2.6" width="17" height="7.8" rx="2" fill="currentColor"/><path d="M25.4 4.6v3.8" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity="0.5"/></svg>
+            </span>
+          </div>
+
+          <div class="screen screen--root">
+            <div class="pad" style="padding-top:6px;flex:1;min-height:0;overflow:hidden">
+              <p class="eyebrow">Brewlog 1.2.0</p>
+              <h1 class="lgtitle">Settings</h1>
+
+              <div style="margin-top:20px" data-od-id="settings-measurement">
+                <p class="grouplabel">Measurement</p>
+                <div class="group" style="margin-top:var(--s2)">
+                  <button class="row" type="button">
+                    <span class="rmain">Units</span>
+                    <span class="rval">g / ml</span>
+                    <svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path class="strokes" d="M9.4 5.2 16 12l-6.6 6.8"/></svg>
+                  </button>
+                  <button class="row" type="button">
+                    <span class="rmain">Default ratio</span>
+                    <span class="rval">1:16.7</span>
+                    <svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path class="strokes" d="M9.4 5.2 16 12l-6.6 6.8"/></svg>
+                  </button>
+                </div>
+              </div>
+
+              <div style="margin-top:20px" data-od-id="settings-reminders">
+                <p class="grouplabel">Reminders</p>
+                <div class="group" style="margin-top:var(--s2)">
+                  <div class="row">
+                    <span class="rmain">
+                      Morning reminder
+                      <span class="rsub" style="display:block">07:00, weekdays</span>
+                    </span>
+                    <span class="toggle on" role="img" aria-label="Morning reminder on"></span>
+                  </div>
+                  <div class="row">
+                    <span class="rmain">
+                      Rate after timer ends
+                      <span class="rsub" style="display:block">Ask for a rating when drawdown finishes</span>
+                    </span>
+                    <span class="toggle on" role="img" aria-label="Rate after timer ends on"></span>
+                  </div>
+                </div>
+              </div>
+
+              <div style="margin-top:20px" data-od-id="settings-journal">
+                <p class="grouplabel">Journal</p>
+                <div class="group" style="margin-top:var(--s2)">
+                  <button class="row" type="button">
+                    <span class="rmain">
+                      Export journal
+                      <span class="rsub" style="display:block">61 brews · CSV</span>
+                    </span>
+                    <svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path class="strokes" d="M9.4 5.2 16 12l-6.6 6.8"/></svg>
+                  </button>
+                  <button class="row" type="button">
+                    <span class="rmain">About Brewlog</span>
+                    <span class="rval">1.2.0</span>
+                    <svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path class="strokes" d="M9.4 5.2 16 12l-6.6 6.8"/></svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <nav class="tabbar" aria-label="Sections" data-od-id="tabbar-settings">
+            <button class="tab" type="button">
+              <svg viewBox="0 0 32 32" aria-hidden="true"><g class="mstroke"><path d="M3.6 7.2H28.4"/><path d="M4.8 7.2 13.2 21H18.8L27.2 7.2"/><path d="M13.2 21 11.8 26.4"/><path d="M18.8 21 20.2 26.4"/><path d="M13 11.4V13.6"/><path d="M19 11.4V13.6"/></g></svg>
+              Journal
+            </button>
+            <button class="tab" type="button">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><g class="strokes"><path d="M4 3.6v16.8h16.4"/><path d="M7.8 17.2v-4.4"/><path d="M11.6 17.2v-8"/><path d="M15.4 17.2v-5.6"/><path d="M19.2 17.2v-9.8"/></g></svg>
+              Stats
+            </button>
+            <button class="tab" type="button" aria-current="page">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><g class="strokes"><path d="M3.6 7.4h16.8"/><path d="M3.6 16.6h16.8"/><circle cx="9" cy="7.4" r="2.6"/><circle cx="15.4" cy="16.6" r="2.6"/></g></svg>
+              Settings
+            </button>
+          </nav>
+
+          <span class="home"></span>
+        </div>
+        <span class="di"></span>
+      </div>
+    </div>
+
+  </div>
+
+  <footer data-od-id="board-footer">
+    <span>Brewlog · screens v1.1 · 390 × 844 · light theme only</span>
+    <span>Ten tokens · system fonts · mascot 32 × 32 / stroke 2.3 · no scripts · renders offline</span>
+  </footer>
+</div>
+</body>
+</html>

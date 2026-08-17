@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="en">
+<!-- impeccable-disable numbered-section-markers: ordered screen captions are stable review and handoff indices. -->
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Brewlog - iOS screens v1</title>
+<style>
+  /* ============================================================
+     TOKENS - the design contract. Replace these per app brief.
+     Everything below derives from them; no hardcoded hex allowed
+     outside this block (frame chrome excepted).
+     ============================================================ */
+  :root{
+    --primary:#B4633A;
+    --primary-600:#8C4526;
+    --accent:#5B8C5A;
+    --danger:#E5484D;
+    --success:#46A758;
+    --bg:#FAF6F1;
+    --fg:#241C16;
+    --muted:#7A6E63;
+    --surface:#FFFFFF;
+    --border:#EAE0D5;
+    --r-sm:8px; --r-md:12px; --r-lg:20px;
+    --s1:4px; --s2:8px; --s3:16px; --s4:24px; --s5:32px;
+    --font-display:-apple-system,system-ui,"Segoe UI",sans-serif;
+    --font-body:-apple-system,system-ui,"Segoe UI",sans-serif;
+    --shadow:0 1px 2px rgba(23,24,28,.05), 0 8px 24px -12px rgba(23,24,28,.15);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--font-body);background:#ECEFF3;color:var(--fg);padding:32px 0}
+  header.page{padding:0 40px 20px}
+  header.page h1{font-family:var(--font-display);font-size:22px;letter-spacing:-.02em}
+  header.page p{color:var(--muted);font-size:14px;margin-top:4px}
+
+  /* --- Multi-screen board: horizontal scroll-snap ------------- */
+  .board{display:flex;gap:56px;overflow-x:auto;scroll-snap-type:x proximity;padding:12px 40px 40px}
+  .screen{scroll-snap-align:center;flex:0 0 auto}
+  .screen .cap{margin:0 0 14px 6px}
+  .screen .cap .n{display:inline-block;font-size:11px;font-weight:700;color:var(--primary-600);
+    border:1px solid var(--border);background:var(--surface);border-radius:99px;padding:3px 9px;margin-bottom:8px}
+  .screen .cap h2{font-family:var(--font-display);font-size:16px;font-weight:600;letter-spacing:-.01em}
+  .screen .cap span{display:block;color:var(--muted);font-size:12.5px;margin-top:3px;max-width:360px}
+
+  /* --- iPhone frame (15/16 class, 390x844) --------------------
+     Verified anatomy: island 118x34 @ top 11 - status bar h54 -
+     home indicator 134x5 @ bottom 8. Do not invent other dims. */
+  .phone{position:relative;width:390px;height:844px;border-radius:54px;background:#0B1114;padding:11px;
+    box-shadow:var(--shadow),0 0 0 2px #232B30,0 0 0 13px #0B1114}
+  .phone .side{position:absolute;background:#232B30;border-radius:2px}
+  .phone .side.pw{right:-15px;top:180px;width:3px;height:64px}
+  .phone .side.v1{left:-15px;top:150px;width:3px;height:34px}
+  .phone .side.v2{left:-15px;top:198px;width:3px;height:56px}
+  .phone .side.v3{left:-15px;top:266px;width:3px;height:56px}
+  .viewport{position:relative;width:368px;height:822px;border-radius:43px;overflow:hidden;background:var(--bg)}
+  .island{position:absolute;top:11px;left:50%;transform:translateX(-50%);
+    width:118px;height:34px;border-radius:20px;background:#000;z-index:60}
+  .statusbar{position:absolute;top:0;left:0;right:0;height:54px;z-index:50;display:flex;align-items:center;
+    justify-content:space-between;padding:16px 30px 0;font-size:15px;font-weight:600;color:var(--fg);pointer-events:none}
+  .statusbar .r{display:flex;align-items:center;gap:7px}
+  .homebar{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);
+    width:134px;height:5px;border-radius:3px;background:rgba(0,0,0,.85);z-index:60}
+
+  /* --- Screen content area (respects both safe areas) --------- */
+  .content{position:absolute;top:54px;bottom:0;left:0;right:0;overflow-y:auto;padding:8px 20px 120px}
+  .navbar{padding:6px 0 10px}
+  .navbar h1{font-family:var(--font-display);font-size:34px;font-weight:700;letter-spacing:-.02em}
+  .navbar .back{display:inline-flex;align-items:center;gap:4px;color:var(--primary-600);font-size:17px;
+    font-weight:500;min-height:44px}
+
+  /* --- Common components (44px targets everywhere) ------------ */
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);
+    box-shadow:var(--shadow);padding:var(--s3);margin-bottom:var(--s2)}
+  .row{display:flex;align-items:center;gap:var(--s3);min-height:44px}
+  .row .ic{width:40px;height:40px;border-radius:var(--r-sm);background:color-mix(in srgb,var(--primary) 12%,white);
+    display:flex;align-items:center;justify-content:center;color:var(--primary-600);flex:0 0 auto}
+  .row b{font-size:15px;font-weight:600;display:block}
+  .row small{font-size:12.5px;color:var(--muted)}
+  .btn{display:flex;align-items:center;justify-content:center;gap:8px;min-height:50px;border-radius:var(--r-md);
+    background:var(--primary);color:#fff;font-size:16px;font-weight:600;border:none;width:100%}
+  .btn:active{transform:scale(.98)}
+  .tabbar{position:absolute;bottom:0;left:0;right:0;height:84px;z-index:55;background:color-mix(in srgb,var(--surface) 92%,transparent);
+    backdrop-filter:blur(14px);border-top:1px solid var(--border);display:flex;padding:8px 8px 24px}
+  .tabbar a{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;min-height:44px;
+    color:var(--muted);font-size:10.5px;font-weight:600;text-decoration:none;justify-content:center}
+  .tabbar a.on{color:var(--primary-600)}
+</style>
+<style>
+  .field{margin-bottom:var(--s3)}
+  .field label{display:block;font-size:13px;font-weight:600;color:var(--fg);margin-bottom:6px}
+  .field .input{display:flex;align-items:center;min-height:48px;background:var(--surface);border:1px solid var(--border);
+    border-radius:var(--r-sm);padding:0 14px;font-size:15px;color:var(--fg)}
+  .field .input.ph{color:var(--muted)}
+  .field .err{color:var(--danger);font-size:12.5px;margin-top:5px}
+  .field .input.bad{border-color:var(--danger)}
+  .seg{display:flex;gap:6px}
+  .seg span{flex:1;display:flex;align-items:center;justify-content:center;min-height:44px;border:1px solid var(--border);
+    border-radius:var(--r-sm);font-size:13.5px;font-weight:600;color:var(--muted);background:var(--surface)}
+  .seg span.on{background:color-mix(in srgb,var(--primary) 14%,white);border-color:var(--primary);color:var(--primary-600)}
+  .stars{color:var(--accent)}
+  .bar{height:10px;border-radius:6px;background:color-mix(in srgb,var(--primary) 16%,white);margin:8px 0 2px;overflow:hidden}
+  .bar i{display:block;height:100%;border-radius:6px;background:var(--primary)}
+  .switch{width:51px;height:31px;border-radius:16px;background:var(--success);position:relative;flex:0 0 auto;margin-left:auto}
+  .switch::after{content:"";position:absolute;top:2px;right:2px;width:27px;height:27px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+  .switch.off{background:var(--border)}
+  .switch.off::after{right:auto;left:2px}
+</style>
+</head>
+<body>
+<header class="page">
+  <h1>Brewlog - iOS screens v1</h1>
+  <p>Coffee tasting journal: log brews, rate them, spot what makes a great cup. Scroll horizontally. Tokens at the top of this file are the dev handoff contract.</p>
+</header>
+
+<div class="board">
+
+<!-- ============ 01 : Journal (root) ============ -->
+<section class="screen">
+  <div class="cap"><span class="n">01</span><h2>Journal</h2><span>Root: today's brews, quick log CTA, tab bar.</span></div>
+  <div class="phone"><span class="side pw"></span><span class="side v1"></span><span class="side v2"></span><span class="side v3"></span>
+    <div class="viewport">
+      <div class="island"></div>
+      <div class="statusbar"><span>9:41</span><span class="r"><svg width="18" height="11" viewBox="0 0 18 11" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="1"/><rect x="5" y="5" width="3" height="6" rx="1"/><rect x="10" y="2.5" width="3" height="8.5" rx="1"/><rect x="15" y="0" width="3" height="11" rx="1" opacity=".35"/></svg><svg width="25" height="12" viewBox="0 0 25 12"><rect x=".5" y=".5" width="21" height="11" rx="3" fill="none" stroke="currentColor" opacity=".4"/><rect x="2" y="2" width="14" height="8" rx="1.6" fill="currentColor"/><path d="M23 4v4c1-.3 1.6-1 1.6-2S24 4.3 23 4Z" fill="currentColor" opacity=".4"/></svg></span></div>
+      <div class="content">
+        <div class="navbar"><h1>Journal</h1></div>
+        <div class="card"><div class="row">
+          <span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 8h13v7a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V8Z"/><path d="M17 9h1.5a2.5 2.5 0 0 1 0 5H17"/><path d="M8 3.5v2M12 3.5v2"/></svg></span>
+          <div style="flex:1"><b>Ethiopia Yirgacheffe</b><small>V60 · 15 g / 250 ml · 2:45</small></div>
+          <span class="stars" style="display:flex;gap:1px"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 3 6.6 7 .8-5.2 4.8 1.4 7L12 17.7 5.8 21l1.4-7L2 9.4l7-.8L12 2Z"/></svg><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 3 6.6 7 .8-5.2 4.8 1.4 7L12 17.7 5.8 21l1.4-7L2 9.4l7-.8L12 2Z"/></svg><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 3 6.6 7 .8-5.2 4.8 1.4 7L12 17.7 5.8 21l1.4-7L2 9.4l7-.8L12 2Z"/></svg><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 3 6.6 7 .8-5.2 4.8 1.4 7L12 17.7 5.8 21l1.4-7L2 9.4l7-.8L12 2Z"/></svg><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="m12 2 3 6.6 7 .8-5.2 4.8 1.4 7L12 17.7 5.8 21l1.4-7L2 9.4l7-.8L12 2Z"/></svg></span>
+        </div></div>
+        <div class="card"><div class="row">
+          <span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 8h13v7a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V8Z"/><path d="M17 9h1.5a2.5 2.5 0 0 1 0 5H17"/><path d="M8 3.5v2M12 3.5v2"/></svg></span>
+          <div style="flex:1"><b>Colombia Huila</b><small>Aeropress · 17 g / 240 ml · 1:30</small></div>
+          <span class="stars" style="display:flex;gap:1px"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 3 6.6 7 .8-5.2 4.8 1.4 7L12 17.7 5.8 21l1.4-7L2 9.4l7-.8L12 2Z"/></svg><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 3 6.6 7 .8-5.2 4.8 1.4 7L12 17.7 5.8 21l1.4-7L2 9.4l7-.8L12 2Z"/></svg><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 3 6.6 7 .8-5.2 4.8 1.4 7L12 17.7 5.8 21l1.4-7L2 9.4l7-.8L12 2Z"/></svg><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="m12 2 3 6.6 7 .8-5.2 4.8 1.4 7L12 17.7 5.8 21l1.4-7L2 9.4l7-.8L12 2Z"/></svg><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="m12 2 3 6.6 7 .8-5.2 4.8 1.4 7L12 17.7 5.8 21l1.4-7L2 9.4l7-.8L12 2Z"/></svg></span>
+        </div></div>
+        <div class="card"><div class="row">
+          <span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 8h13v7a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V8Z"/><path d="M17 9h1.5a2.5 2.5 0 0 1 0 5H17"/><path d="M8 3.5v2M12 3.5v2"/></svg></span>
+          <div style="flex:1"><b>Brazil Cerrado</b><small>Espresso · 18 g in / 38 g out · 0:28</small></div>
+          <span class="stars" style="display:flex;gap:1px"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 3 6.6 7 .8-5.2 4.8 1.4 7L12 17.7 5.8 21l1.4-7L2 9.4l7-.8L12 2Z"/></svg><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 3 6.6 7 .8-5.2 4.8 1.4 7L12 17.7 5.8 21l1.4-7L2 9.4l7-.8L12 2Z"/></svg><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 3 6.6 7 .8-5.2 4.8 1.4 7L12 17.7 5.8 21l1.4-7L2 9.4l7-.8L12 2Z"/></svg><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 3 6.6 7 .8-5.2 4.8 1.4 7L12 17.7 5.8 21l1.4-7L2 9.4l7-.8L12 2Z"/></svg><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 3 6.6 7 .8-5.2 4.8 1.4 7L12 17.7 5.8 21l1.4-7L2 9.4l7-.8L12 2Z"/></svg></span>
+        </div></div>
+        <button class="btn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Log a brew</button>
+      </div>
+      <nav class="tabbar">
+        <a class="on" href="#"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h14v16H5z"/><path d="M9 8h6M9 12h6M9 16h4"/></svg>Journal</a>
+        <a href="#"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 20V10M12 20V4M20 20v-7"/></svg>Stats</a>
+        <a href="#"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.4-2.3 1a7 7 0 0 0-2-1.2L14.2 3h-4l-.4 2.7a7 7 0 0 0-2 1.2l-2.3-1-2 3.4 2 1.5A7 7 0 0 0 5 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.4 2.3-1a7 7 0 0 0 2 1.2l.4 2.7h4l.4-2.7a7 7 0 0 0 2-1.2l2.3 1 2-3.4-2-1.5c.1-.4.1-.8.1-1.2Z"/></svg>Settings</a>
+      </nav>
+      <div class="homebar"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 02 : Log a brew (pushed, form) ============ -->
+<section class="screen">
+  <div class="cap"><span class="n">02</span><h2>Log a brew</h2><span>Pushed form: labels above fields, one error state shown.</span></div>
+  <div class="phone"><span class="side pw"></span><span class="side v1"></span><span class="side v2"></span><span class="side v3"></span>
+    <div class="viewport">
+      <div class="island"></div>
+      <div class="statusbar"><span>9:41</span><span class="r"><svg width="18" height="11" viewBox="0 0 18 11" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="1"/><rect x="5" y="5" width="3" height="6" rx="1"/><rect x="10" y="2.5" width="3" height="8.5" rx="1"/><rect x="15" y="0" width="3" height="11" rx="1" opacity=".35"/></svg><svg width="25" height="12" viewBox="0 0 25 12"><rect x=".5" y=".5" width="21" height="11" rx="3" fill="none" stroke="currentColor" opacity=".4"/><rect x="2" y="2" width="14" height="8" rx="1.6" fill="currentColor"/><path d="M23 4v4c1-.3 1.6-1 1.6-2S24 4.3 23 4Z" fill="currentColor" opacity=".4"/></svg></span></div>
+      <div class="content">
+        <div class="navbar"><a class="back" href="#"><svg width="12" height="20" viewBox="0 0 12 20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2 3 10l7 8"/></svg>Journal</a><h1 style="font-size:28px;margin-top:2px">Log a brew</h1></div>
+        <div class="field"><label>Coffee</label><div class="input">Ethiopia Yirgacheffe - Roasted 02/08</div></div>
+        <div class="field"><label>Method</label><div class="seg"><span class="on">V60</span><span>Aeropress</span><span>Espresso</span></div></div>
+        <div class="field"><label>Dose (g)</label><div class="input bad">0</div><div class="err">Dose must be between 5 and 30 g.</div></div>
+        <div class="field"><label>Water (ml, 92-96 C)</label><div class="input ph">250</div></div>
+        <button class="btn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Save brew</button>
+      </div>
+      <div class="homebar"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 03 : Brew detail (pushed) ============ -->
+<section class="screen">
+  <div class="cap"><span class="n">03</span><h2>Brew detail</h2><span>Pushed: rating, recipe facts, repeat CTA.</span></div>
+  <div class="phone"><span class="side pw"></span><span class="side v1"></span><span class="side v2"></span><span class="side v3"></span>
+    <div class="viewport">
+      <div class="island"></div>
+      <div class="statusbar"><span>9:41</span><span class="r"><svg width="18" height="11" viewBox="0 0 18 11" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="1"/><rect x="5" y="5" width="3" height="6" rx="1"/><rect x="10" y="2.5" width="3" height="8.5" rx="1"/><rect x="15" y="0" width="3" height="11" rx="1" opacity=".35"/></svg><svg width="25" height="12" viewBox="0 0 25 12"><rect x=".5" y=".5" width="21" height="11" rx="3" fill="none" stroke="currentColor" opacity=".4"/><rect x="2" y="2" width="14" height="8" rx="1.6" fill="currentColor"/><path d="M23 4v4c1-.3 1.6-1 1.6-2S24 4.3 23 4Z" fill="currentColor" opacity=".4"/></svg></span></div>
+      <div class="content">
+        <div class="navbar"><a class="back" href="#"><svg width="12" height="20" viewBox="0 0 12 20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2 3 10l7 8"/></svg>Journal</a><h1 style="font-size:28px;margin-top:2px">Ethiopia Yirgacheffe</h1></div>
+        <div class="card"><div class="row"><div style="flex:1"><b>Overall</b><small>Bright, floral, clean finish</small></div><span class="stars" style="display:flex;gap:1px"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 3 6.6 7 .8-5.2 4.8 1.4 7L12 17.7 5.8 21l1.4-7L2 9.4l7-.8L12 2Z"/></svg><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 3 6.6 7 .8-5.2 4.8 1.4 7L12 17.7 5.8 21l1.4-7L2 9.4l7-.8L12 2Z"/></svg><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 3 6.6 7 .8-5.2 4.8 1.4 7L12 17.7 5.8 21l1.4-7L2 9.4l7-.8L12 2Z"/></svg><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 3 6.6 7 .8-5.2 4.8 1.4 7L12 17.7 5.8 21l1.4-7L2 9.4l7-.8L12 2Z"/></svg><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="m12 2 3 6.6 7 .8-5.2 4.8 1.4 7L12 17.7 5.8 21l1.4-7L2 9.4l7-.8L12 2Z"/></svg></span></div></div>
+        <div class="card">
+          <div class="row"><div><b>Method</b><small>V60-02, paper filter</small></div></div>
+          <div class="row"><div><b>Recipe</b><small>15 g coffee / 250 ml water at 94 C</small></div></div>
+          <div class="row"><div><b>Grind</b><small>Medium-fine (18 clicks)</small></div></div>
+          <div class="row"><div><b>Total time</b><small>2:45, bloom 0:35</small></div></div>
+        </div>
+        <button class="btn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v4h4"/></svg>Repeat this recipe</button>
+      </div>
+      <div class="homebar"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 04 : Stats (root) ============ -->
+<section class="screen">
+  <div class="cap"><span class="n">04</span><h2>Stats</h2><span>Root: ratings by method, brews this month.</span></div>
+  <div class="phone"><span class="side pw"></span><span class="side v1"></span><span class="side v2"></span><span class="side v3"></span>
+    <div class="viewport">
+      <div class="island"></div>
+      <div class="statusbar"><span>9:41</span><span class="r"><svg width="18" height="11" viewBox="0 0 18 11" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="1"/><rect x="5" y="5" width="3" height="6" rx="1"/><rect x="10" y="2.5" width="3" height="8.5" rx="1"/><rect x="15" y="0" width="3" height="11" rx="1" opacity=".35"/></svg><svg width="25" height="12" viewBox="0 0 25 12"><rect x=".5" y=".5" width="21" height="11" rx="3" fill="none" stroke="currentColor" opacity=".4"/><rect x="2" y="2" width="14" height="8" rx="1.6" fill="currentColor"/><path d="M23 4v4c1-.3 1.6-1 1.6-2S24 4.3 23 4Z" fill="currentColor" opacity=".4"/></svg></span></div>
+      <div class="content">
+        <div class="navbar"><h1>Stats</h1></div>
+        <div class="card">
+          <b style="font-size:15px">Average rating by method</b>
+          <small style="color:var(--muted)">Last 30 days, 24 brews</small>
+          <div style="margin-top:10px">
+            <small>V60 · 4.2</small><div class="bar"><i style="width:84%"></i></div>
+            <small>Espresso · 3.9</small><div class="bar"><i style="width:78%"></i></div>
+            <small>Aeropress · 3.4</small><div class="bar"><i style="width:68%"></i></div>
+          </div>
+        </div>
+        <div class="card"><div class="row">
+          <span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M3 9h18M8 2.5v3M16 2.5v3"/></svg></span>
+          <div><b>24 brews in August</b><small>Best week: 9 brews, avg 4.1</small></div>
+        </div></div>
+        <div class="card"><div class="row">
+          <span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 13h6l-1 8 8-11h-6l1-7Z"/></svg></span>
+          <div><b>Top coffee</b><small>Brazil Cerrado, 4.8 over 5 brews</small></div>
+        </div></div>
+      </div>
+      <nav class="tabbar">
+        <a href="#"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h14v16H5z"/><path d="M9 8h6M9 12h6M9 16h4"/></svg>Journal</a>
+        <a class="on" href="#"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 20V10M12 20V4M20 20v-7"/></svg>Stats</a>
+        <a href="#"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.4-2.3 1a7 7 0 0 0-2-1.2L14.2 3h-4l-.4 2.7a7 7 0 0 0-2 1.2l-2.3-1-2 3.4 2 1.5A7 7 0 0 0 5 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.4 2.3-1a7 7 0 0 0 2 1.2l.4 2.7h4l.4-2.7a7 7 0 0 0 2-1.2l2.3 1 2-3.4-2-1.5c.1-.4.1-.8.1-1.2Z"/></svg>Settings</a>
+      </nav>
+      <div class="homebar"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 05 : Settings (root) ============ -->
+<section class="screen">
+  <div class="cap"><span class="n">05</span><h2>Settings</h2><span>Root: units, reminders, data export.</span></div>
+  <div class="phone"><span class="side pw"></span><span class="side v1"></span><span class="side v2"></span><span class="side v3"></span>
+    <div class="viewport">
+      <div class="island"></div>
+      <div class="statusbar"><span>9:41</span><span class="r"><svg width="18" height="11" viewBox="0 0 18 11" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="1"/><rect x="5" y="5" width="3" height="6" rx="1"/><rect x="10" y="2.5" width="3" height="8.5" rx="1"/><rect x="15" y="0" width="3" height="11" rx="1" opacity=".35"/></svg><svg width="25" height="12" viewBox="0 0 25 12"><rect x=".5" y=".5" width="21" height="11" rx="3" fill="none" stroke="currentColor" opacity=".4"/><rect x="2" y="2" width="14" height="8" rx="1.6" fill="currentColor"/><path d="M23 4v4c1-.3 1.6-1 1.6-2S24 4.3 23 4Z" fill="currentColor" opacity=".4"/></svg></span></div>
+      <div class="content">
+        <div class="navbar"><h1>Settings</h1></div>
+        <div class="card">
+          <div class="row"><div><b>Units</b><small>Grams and milliliters</small></div></div>
+          <div class="row"><div><b>Morning reminder</b><small>Every day at 07:30</small></div><span class="switch"></span></div>
+          <div class="row"><div><b>Rate after timer ends</b><small>Ask for a rating when a brew finishes</small></div><span class="switch off"></span></div>
+        </div>
+        <div class="card">
+          <div class="row"><span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M4 21h16"/></svg></span><div><b>Export journal</b><small>CSV, all brews</small></div></div>
+          <div class="row"><span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.5"/></svg></span><div><b>About Brewlog</b><small>Version 1.0 (12)</small></div></div>
+        </div>
+      </div>
+      <nav class="tabbar">
+        <a href="#"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h14v16H5z"/><path d="M9 8h6M9 12h6M9 16h4"/></svg>Journal</a>
+        <a href="#"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 20V10M12 20V4M20 20v-7"/></svg>Stats</a>
+        <a class="on" href="#"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.4-2.3 1a7 7 0 0 0-2-1.2L14.2 3h-4l-.4 2.7a7 7 0 0 0-2 1.2l-2.3-1-2 3.4 2 1.5A7 7 0 0 0 5 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.4 2.3-1a7 7 0 0 0 2 1.2l.4 2.7h4l.4-2.7a7 7 0 0 0 2-1.2l2.3 1 2-3.4-2-1.5c.1-.4.1-.8.1-1.2Z"/></svg>Settings</a>
+      </nav>
+      <div class="homebar"></div>
+    </div>
+  </div>
+</section>
+
+</div>
+</body>
+</html>
