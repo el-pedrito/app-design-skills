@@ -105,8 +105,8 @@ These previews are rendered directly from the committed HTML examples, so the RE
 ### Brand direction
 
 <p align="center">
-  <a href="examples/brewlog-brand.html">
-    <img src="assets/readme/brewlog-brand.webp" width="960" alt="Brewlog brand board showing the Calm, Pleased, Focused and Resting mascot states plus four app icon concepts.">
+  <a href="https://el-pedrito.github.io/app-design-skills/examples/brewlog-brand.html">
+    <img src="https://el-pedrito.github.io/app-design-skills/assets/readme/brewlog-brand.webp" width="960" alt="Brewlog brand board showing the Calm, Pleased, Focused and Resting mascot states plus four app icon concepts.">
   </a>
 </p>
 
@@ -115,8 +115,8 @@ These previews are rendered directly from the committed HTML examples, so the RE
 ### Branded iOS set
 
 <p align="center">
-  <a href="examples/brewlog-screens.html">
-    <img src="assets/readme/brewlog-screens.webp" width="960" alt="Six branded Brewlog iOS screens: Journal, first-launch Journal, Log a brew, Brew timer, Stats and Settings.">
+  <a href="https://el-pedrito.github.io/app-design-skills/examples/brewlog-screens.html">
+    <img src="https://el-pedrito.github.io/app-design-skills/assets/readme/brewlog-screens.webp" width="960" alt="Six branded Brewlog iOS screens: Journal, first-launch Journal, Log a brew, Brew timer, Stats and Settings.">
   </a>
 </p>
 
@@ -128,8 +128,8 @@ These previews are rendered directly from the committed HTML examples, so the RE
 <summary>Compare the explicit five-screen fallback</summary>
 
 <p align="center">
-  <a href="examples/brewlog-screens-fallback-neutral.html">
-    <img src="assets/readme/brewlog-screens-fallback-neutral.webp" width="960" alt="Five neutral Brewlog iOS fallback screens arranged in two rows.">
+  <a href="https://el-pedrito.github.io/app-design-skills/examples/brewlog-screens-fallback-neutral.html">
+    <img src="https://el-pedrito.github.io/app-design-skills/assets/readme/brewlog-screens-fallback-neutral.webp" width="960" alt="Five neutral Brewlog iOS fallback screens arranged in two rows.">
   </a>
 </p>
 
